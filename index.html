@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITUB4 - Inteligência Financeira</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i class="fa-solid fa-chart-line logo-icon"></i>
+                <h1 class="logo-text">ITUB4 <span>Quantum</span></h1>
+            </div>
+            
+            <nav class="main-nav">
+                <a href="#" data-target="all" class="nav-item active"><i class="fa-solid fa-house"></i> Dashboard Principal</a>
+                <a href="#" data-target="kpi" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Indicadores</a>
+                <a href="#" data-target="tech" class="nav-item"><i class="fa-solid fa-chart-area"></i> Análise Técnica</a>
+                <a href="#" data-target="ai" class="nav-item"><i class="fa-solid fa-crystal-ball"></i> Previsão IA</a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="pulse"></span> Modelo Online
+                </div>
+                <div class="last-update" id="last-update">Atualizado agora</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-titles">
+                    <h2>Visão Geral do Modelo</h2>
+                    <p>Análise preditiva XGBoost otimizado com padronização Z-Score</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-shutdown" id="btn-shutdown"><i class="fa-solid fa-power-off"></i> Desligar Servidor</button>
+                    <button class="btn-info" id="btn-toggle-info"><i class="fa-solid fa-circle-info"></i> Entender a Análise</button>
+                    <button class="btn-refresh" id="btn-refresh"><i class="fa-solid fa-rotate-right"></i> Atualizar Dados</button>
+                </div>
+            </header>
+
+            <!-- Training Period Panel -->
+            <section id="training-section" class="training-panel">
+                <div class="training-panel-header">
+                    <h3><i class="fa-solid fa-sliders"></i> Período de Treinamento da IA</h3>
+                    <div class="training-mode-toggle">
+                        <span class="toggle-label" id="toggle-label">Modo Global</span>
+                        <label class="switch" for="global-toggle">
+                            <input type="checkbox" id="global-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-sublabel" id="toggle-sublabel">Todo o histórico</span>
+                    </div>
+                </div>
+                <div class="training-panel-body">
+                    <div class="training-field">
+                        <label for="train-start">Data Início</label>
+                        <input type="date" id="train-start" value="2000-12-21" disabled>
+                    </div>
+                    <div class="training-field">
+                        <label for="train-end">Data Fim <span id="pregoes-count" class="pregoes-count"></span></label>
+                        <input type="date" id="train-end" disabled>
+                    </div>
+                    <button class="btn-retrain" id="btn-retrain">
+                        <i class="fa-solid fa-brain"></i> Recalcular e Treinar Modelo
+                    </button>
+                </div>
+                <div class="training-notice">
+                    <i class="fa-solid fa-database"></i>
+                    <span><strong>Base de Dados:</strong> O histórico disponível no Yahoo Finance para ITUB4.SA inicia em <strong>21/12/2000</strong>. Período atual: <span id="training-range-info">carregando...</span></span>
+                </div>
+                <div class="training-status" id="training-status"></div>
+            </section>
+
+            <!-- KPI Cards Section -->
+            <section id="kpi-section" class="kpi-grid">
+                <!-- MAE Card -->
+                <div class="kpi-card highlight-card" data-kpi="mae">
+                    <div class="kpi-icon"><i class="fa-solid fa-calculator"></i></div>
+                    <div class="kpi-content">
+                        <h3>MAE (Erro Médio Absoluto) <i class="fa-regular fa-circle-question tooltip-icon" title="MAE mostra o erro médio absoluto das previsões do modelo em relação ao preço real. Valores mais baixos indicam previsões mais próximas do real."></i></h3>
+                        <div class="kpi-value" id="val-mae">--</div>
+                        <div class="kpi-desc">Margem de erro média do modelo</div>
+                    </div>
+                </div>
+
+                <!-- RMSE Card -->
+                <div class="kpi-card" data-kpi="rmse">
+                    <div class="kpi-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="kpi-content">
+                        <h3>RMSE (Raiz do Erro Quadrático Médio) <i class="fa-regular fa-circle-question tooltip-icon" title="RMSE penaliza erros grandes e dá uma medida de dispersão das previsões. Valores menores indicam previsões mais confiáveis."></i></h3>
+                        <div class="kpi-value" id="val-rmse">--</div>
+                        <div class="kpi-desc">Erro médio ajustado por variação</div>
+                    </div>
+                </div>
+
+                <!-- R² Card -->
+                <div class="kpi-card" data-kpi="r2">
+                    <div class="kpi-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="kpi-content">
+                        <h3>Poder de Explicação (R²) <i class="fa-regular fa-circle-question tooltip-icon" title="O R² mede o quanto a variação do preço é explicada pelo modelo. É calculado correlacionando as previsões com os dados reais."></i></h3>
+                        <div class="kpi-value" id="val-r2">--</div>
+                        <div class="kpi-desc">Capacidade do modelo XGBoost</div>
+                    </div>
+                </div>
+
+                <!-- RSI Card -->
+                <div class="kpi-card" data-kpi="rsi">
+                    <div class="kpi-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                    <div class="kpi-content">
+                        <h3>RSI Atual (14d) <i class="fa-regular fa-circle-question tooltip-icon" title="O Índice de Força Relativa (RSI) compara a magnitude dos ganhos recentes com as perdas recentes. Acima de 70 indica que a ação subiu muito rápido (Sobrecomprada). Abaixo de 30 indica queda excessiva (Sobrevendida)."></i></h3>
+                        <div class="kpi-value" id="val-rsi">--</div>
+                        <div class="kpi-desc" id="desc-rsi">Analisando força relativa...</div>
+                    </div>
+                </div>
+
+                <!-- Preço Card -->
+                <div class="kpi-card" data-kpi="price">
+                    <div class="kpi-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div class="kpi-content">
+                        <h3>Último Fechamento <i class="fa-regular fa-circle-question tooltip-icon" title="Último preço registrado no histórico. A variação percentual é calculada comparando com o pregão do dia anterior."></i></h3>
+                        <div class="kpi-value" id="val-price">--</div>
+                        <div class="kpi-desc" id="desc-price">Buscando dados...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section id="charts-section" class="charts-grid">
+                <!-- Price History & Predictions -->
+                <div id="chart-price" class="chart-container large-chart glass-panel">
+                    <div class="chart-header">
+                        <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias)</h3>
+                        <div class="chart-toggle-group" id="timeframe-controls">
+                            <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
+                            <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
+                            <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
+                            <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
+                            <button class="chart-toggle-btn" id="reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- RSI Chart -->
+                <div id="chart-rsi" class="chart-container glass-panel">
+                    <div class="chart-header">
+                        <h3><i class="fa-solid fa-wave-square"></i> Oscilador RSI (14 Períodos)</h3>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="rsiChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Analyst Tools (visible in Tech tab) -->
+                <div id="analyst-tools" class="analyst-tools-section" style="display: none;">
+                    <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Ferramentas do Analista</h3>
+                    
+                    <div class="chart-toggle-group">
+                        <button class="chart-toggle-btn active" data-dataset="0">
+                            <span class="toggle-dot" style="background: #818cf8;"></span>
+                            RSI (14 Períodos)
+                        </button>
+                    </div>
+
+                    <div class="tech-charts-grid">
+                        <div class="chart-container glass-panel">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-chart-line"></i> Preço Real</h4>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="realPriceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-wave-square"></i> Média Móvel (20d)</h4>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="ma20Chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-robot"></i> Previsão IA (XGBoost)</h4>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="xgbForecastChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <div class="chart-header">
+                                <h4><i class="fa-solid fa-circle-dot"></i> Pontos de Previsão</h4>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <canvas id="predictionPointsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="diary-container">
+                        <div class="diary-header">
+                            <h4><i class="fa-solid fa-book"></i> Diário de Trade (Timeline)</h4>
+                        </div>
+                        
+                        <!-- Form para Nova Anotação -->
+                        <div class="diary-form-card">
+                            <div class="diary-sentiment-group">
+                                <span class="sentiment-label">Viés da Análise:</span>
+                                <button class="btn-sentiment" data-sentiment="alta"><i class="fa-solid fa-arrow-trend-up"></i> Alta</button>
+                                <button class="btn-sentiment active" data-sentiment="neutro"><i class="fa-solid fa-minus"></i> Neutro</button>
+                                <button class="btn-sentiment" data-sentiment="baixa"><i class="fa-solid fa-arrow-trend-down"></i> Baixa</button>
+                            </div>
+                            
+                            <textarea class="diary-textarea" id="analyst-diary" placeholder="Escreva aqui suas observações sobre o mercado no momento..."></textarea>
+                            
+                            <div class="diary-form-footer">
+                                <span class="diary-price-hint"><i class="fa-solid fa-tag"></i> O preço atual será salvo automaticamente.</span>
+                                <button class="btn-save-diary" id="btn-save-diary"><i class="fa-solid fa-paper-plane"></i> Salvar Lançamento</button>
+                            </div>
+                        </div>
+
+                        <!-- Histórico em Timeline -->
+                        <div class="diary-timeline" id="diary-timeline">
+                            <!-- Os cards serão injetados aqui via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Info Panel (Collapsible) -->
+        <aside class="info-panel" id="info-panel">
+            <div class="info-panel-header">
+                <h3><i class="fa-solid fa-book-open"></i> Entendendo a Análise</h3>
+                <button class="btn-close-info" id="btn-close-info"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="info-panel-content">
+                
+                <div class="info-section">
+                    <h4><i class="fa-solid fa-robot"></i> O Modelo XGBoost</h4>
+                    <p>O algoritmo <strong>XGBoost</strong> (Extreme Gradient Boosting) é uma das IA's de aprendizado de máquina mais avançadas. Ele cria milhares de "árvores de decisão" que aprendem com os erros umas das outras para prever para onde o preço vai.</p>
+                </div>
+
+                <div class="info-section">
+                    <h4><i class="fa-solid fa-chart-line"></i> Análise de Resultados</h4>
+                    <p>Abaixo o significado de cada métrica apresentada no painel:</p>
+                    
+                    <ul class="metric-explanation-list">
+                        <li><strong>Registros:</strong> Quantidade total de dias de negociação (pregões) processados para treinar a IA. <em>Chegamos a isso limpando falhas e feriados no CSV histórico.</em></li>
+                        <li><strong>Melhor Modelo:</strong> Dentre as 3 versões treinadas (Rápido, Base, Otimizado), é aquele que encontrou os melhores parâmetros na validação cruzada.</li>
+                        <li><strong>Acurácia de Direção:</strong> Não apenas prever um valor, mas acertar "se vai subir ou cair". <em>Por exemplo: 53% significa que o modelo acerta a tendência mais do que o jogar de uma moeda.</em></li>
+                        <li><strong>Erro (MAE):</strong> Mean Absolute Error. É a margem de erro média (em R$) das previsões do modelo em relação à realidade observada.</li>
+                        <li><strong>Poder de Explicação (R²):</strong> Quão bem os indicadores (RSI, Bollinger, etc) justificam as variações do preço. <em>Acima de zero significa que o modelo tem Edge matemático contra o mercado aleatório.</em></li>
+                    </ul>
+                </div>
+
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal para Detalhes dos KPIs -->
+    <div id="kpi-modal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <button class="btn-close-modal" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <div class="modal-icon" id="modal-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="modal-header-text">
+                    <h2 id="modal-title">Título</h2>
+                    <h1 id="modal-value" class="modal-value-large">--</h1>
+                </div>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <h3>Treinando Inteligência Artificial...</h3>
+        <p>O XGBoost está recalculando com o novo período. Isso pode levar alguns minutos.</p>
+    </div>
+    
+    <script src="js/main.js?v=9"></script>
+</body>
+</html>

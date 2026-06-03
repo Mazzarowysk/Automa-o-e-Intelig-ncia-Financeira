@@ -1,77 +1,11 @@
 {
-  "score_medio": 0.58515,
-  "classificacao": "Otimismo Extremo",
-  "noticias": [
-    {
-      "titulo": "Stock Market Today, June 3: Nu Holdings Slides After Analyst Downgrade Highlights Margin and Leadership Risks",
-      "resumo": "Margin pressure, leadership turnover, and record profits collide as investors reassess this fast-growing digital bank, today, June 3, 2026.",
-      "score": -0.1779,
-      "data": "2026-06-03",
-      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/03/stock-market-today-june-3-nu-holdings-slides-after-analyst-downgrade-highlights-margin-and-leadership-risks/"
-    },
-    {
-      "titulo": "Brazil's government, federal district agree on BRB loan deal",
-      "resumo": "BRASILIA, May 28 (Reuters) - Brazil's government and the Federal District have reached a deal for a loan to support struggling state-run lender BRB, a court document showed on Thursday.",
-      "score": 0.4215,
-      "data": "2026-05-28",
-      "link": "https://finance.yahoo.com/economy/policy/articles/brazils-government-federal-district-agree-184259136.html"
-    },
-    {
-      "titulo": "Itau Unibanco Q1 Earnings Call Highlights",
-      "resumo": "Itau Unibanco (NYSE:ITUB) reported what Chief Executive Officer Milton Maluhy Filho called a “very strong” first quarter of 2026, with managerial net income of BRL 12.3 billion, up 10% from a year earlier, as profitability remained high despite margin headwinds tied to an early dividend payment and",
-      "score": 0.2732,
-      "data": "2026-05-11",
-      "link": "https://www.marketbeat.com/instant-alerts/itau-unibanco-q1-earnings-call-highlights-2026-05-10/?utm_source=yahoofinance&utm_medium=yahoofinance"
-    },
-    {
-      "titulo": "Itau Unibanco Holding (ITUB): What Next After Card Subsidiary Absorbed?",
-      "resumo": "Itau Unibanco Holding (NYSE:ITUB) is one of the best large cap penny stocks under $10 to buy now. The stock is up around 40% over the past year. On April 28, Itau Unibanco Holding (NYSE:ITUB) shareholders gave a strong approval to a management plan to absorb the Brazilian bank’s Banco Itaucard subsidiary. Itau Unibanco’s management […]",
-      "score": 0.891,
-      "data": "2026-05-06",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/itau-unibanco-holding-itub-next-190022794.html"
-    },
-    {
-      "titulo": "Itau Unibanco Q1 Earnings & Revenues Rise Y/Y Despite Higher Expenses",
-      "resumo": "ITUB's Q1 results benefit from higher revenues and financial margin. However, rising expenses and credit costs continue to weigh on profitability.",
-      "score": 0.7717,
-      "data": "2026-05-06",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/itau-unibanco-q1-earnings-revenues-162800210.html"
-    },
-    {
-      "titulo": "Zacks.com featured highlights include Seanergy Maritime, Itau Unibanco and Chatham Lodging Trust",
-      "resumo": "Seanergy Maritime, Itau Unibanco and Chatham Lodging Trust emerge as breakout candidates, backed by strong earnings growth and technical momentum signals.",
-      "score": 0.9118,
-      "data": "2026-04-29",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/zacks-com-featured-highlights-seanergy-140300835.html"
-    },
-    {
-      "titulo": "2026 Stock Market Winners: 3 Breakout Picks With Big Upside",
-      "resumo": "SHIP, ITUB and CLDT screen as breakout candidates near resistance, backed by price momentum, support levels and projected earnings growth in 2026.",
-      "score": 0.8176,
-      "data": "2026-04-28",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/2026-stock-market-winners-3-190000563.html"
-    },
-    {
-      "titulo": "What Makes Banco Itau (ITUB) a New Buy Stock",
-      "resumo": "Banco Itau (ITUB) has been upgraded to a Zacks Rank #2 (Buy), reflecting growing optimism about the company's earnings prospects. This might drive the stock higher in the near term.",
-      "score": 0.7506,
-      "data": "2026-04-22",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/makes-banco-itau-itub-buy-160003624.html"
-    },
-    {
-      "titulo": "SHG or ITUB: Which Is the Better Value Stock Right Now?",
-      "resumo": "SHG vs. ITUB: Which Stock Is the Better Value Option?",
-      "score": 0.8738,
-      "data": "2026-04-15",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/shg-itub-better-value-stock-154001269.html"
-    },
-    {
-      "titulo": "How The Itaú Unibanco (BOVESPA:ITUB4) Story Is Shifting With JPMorgan’s US$9 Target",
-      "resumo": "The updated analyst narrative around Itaú Unibanco Holding now centers on a higher price target of US$9, which appears alongside an unchanged fair value estimate of R$47.92 in the refreshed model. JPMorgan’s decision to keep an Overweight rating while moving to this US$9 target highlights how closely the current share story tracks the revised expectations for execution, earnings quality and valuation risk. As you read on, you will see how to interpret these evolving targets and monitor what...",
-      "score": 0.3182,
-      "data": "2026-04-13",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/ita-unibanco-bovespa-itub4-story-140421477.html"
-    }
-  ],
-  "atualizado_em": "2026-06-03 19:28:03"
+  "score_medio": 0.0,
+  "classificacao": "Neutro",
+  "noticias": [],
+  "periodo": {
+    "inicio": "2026-05-27",
+    "fim": "2026-06-03"
+  },
+  "atualizado_em": "2026-06-03 19:57:22",
+  "erro": "Failed to perform, curl: (56) Recv failure: Connection was reset. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."
 }

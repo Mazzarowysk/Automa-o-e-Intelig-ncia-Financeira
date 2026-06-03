@@ -60,15 +60,16 @@
 
             <!-- Training Period Panel -->
             <section id="training-section" class="training-panel">
-                <div class="training-panel-header">
+                <div class="training-panel-header" style="flex-wrap: wrap; gap: 1rem;">
                     <h3><i class="fa-solid fa-sliders"></i> Período de Treinamento da IA</h3>
-                    <div class="training-mode-toggle">
-                        <span class="toggle-label" id="toggle-label">Modo Global</span>
-                        <label class="switch" for="global-toggle">
-                            <input type="checkbox" id="global-toggle" checked>
-                            <span class="slider round"></span>
-                        </label>
-                        <span class="toggle-sublabel" id="toggle-sublabel">Todo o histórico</span>
+                    <div class="chart-toggle-group" id="train-timeframe-controls" style="flex-wrap: wrap;">
+                        <button class="chart-toggle-btn" data-train-period="7d">1 Semana</button>
+                        <button class="chart-toggle-btn" data-train-period="30d">1 Mês</button>
+                        <button class="chart-toggle-btn" data-train-period="90d">3 Meses</button>
+                        <button class="chart-toggle-btn" data-train-period="180d">6 Meses</button>
+                        <button class="chart-toggle-btn" data-train-period="365d">1 Ano</button>
+                        <button class="chart-toggle-btn active" data-train-period="all"><i class="fa-solid fa-globe"></i> Global</button>
+                        <button class="chart-toggle-btn" data-train-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                     </div>
                 </div>
                 <div class="training-panel-body">
@@ -158,7 +159,7 @@
                         <button class="chart-toggle-btn" data-sentiment-period="90d">3 Meses</button>
                         <button class="chart-toggle-btn" data-sentiment-period="180d">6 Meses</button>
                         <button class="chart-toggle-btn" data-sentiment-period="365d">1 Ano</button>
-                        <button class="chart-toggle-btn" data-sentiment-period="all">Todo Período</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="all"><i class="fa-solid fa-globe"></i> Global</button>
                         <button class="chart-toggle-btn" data-sentiment-period="custom" id="btn-sentiment-custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                     </div>
                     <!-- Campos de data personalizado (ocultos por padrão) -->
@@ -178,6 +179,9 @@
                     <div class="sentiment-loading" id="sentiment-loading" style="display: none;">
                         <i class="fa-solid fa-spinner fa-spin"></i> <span>Buscando notícias...</span>
                     </div>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
+                    <i class="fa-solid fa-circle-info"></i> Nota: A API gratuita de notícias limita os resultados às últimas publicações mais recentes. Filtros históricos aplicarão restrição de data apenas sobre esse lote recente.
                 </div>
 
                 <div class="sentiment-body" style="display: flex; flex-wrap: wrap; gap: 2rem; padding-top: 1rem;">
@@ -210,14 +214,21 @@
                 <div id="chart-price" class="chart-container large-chart glass-panel">
                     <div class="chart-header">
                         <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias) <i class="fa-regular fa-circle-question tooltip-icon" title="Gráfico principal comparando o histórico real de preços da ITUB4 com as projeções futuras feitas pela Inteligência Artificial do XGBoost para os próximos 10 pregões."></i></h3>
-                        <div class="chart-toggle-group" id="timeframe-controls">
-                            <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
+                        <div class="chart-toggle-group" id="timeframe-controls" style="flex-wrap: wrap;">
+                            <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
                             <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
                             <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
                             <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
                             <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
                             <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                            <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                             <button class="chart-toggle-btn" id="reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                            <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                                <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                                <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                            </div>
                         </div>
                     </div>
                     <div class="canvas-wrapper">
@@ -229,14 +240,21 @@
                 <div id="chart-rsi" class="chart-container glass-panel">
                     <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <h3><i class="fa-solid fa-wave-square"></i> Oscilador RSI (14 Períodos) <i class="fa-regular fa-circle-question tooltip-icon" title="O Índice de Força Relativa (RSI) mede a velocidade das mudanças de preço. Valores acima de 70 indicam que a ação subiu muito e pode estar 'sobrecomprada', enquanto abaixo de 30 indica que caiu muito e pode estar 'sobrevendida'."></i></h3>
-                        <div class="chart-toggle-group" id="rsi-timeframe-controls">
-                            <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
+                        <div class="chart-toggle-group" id="rsi-timeframe-controls" style="flex-wrap: wrap;">
+                            <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
                             <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
                             <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
                             <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
                             <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
                             <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                            <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                             <button class="chart-toggle-btn" id="rsi-reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                            <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                                <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                                <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                            </div>
                         </div>
                     </div>
                     <div class="canvas-wrapper">
@@ -248,15 +266,22 @@
                 <div id="analyst-tools" class="analyst-tools-section" style="display: none;">
                     <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Ferramentas do Analista <i class="fa-regular fa-circle-question tooltip-icon" title="Conjunto de gráficos técnicos detalhados que recompõem o comportamento da ação e o raciocínio da IA, ideal para aprofundar as análises direcionais."></i></h3>
                     
-                    <div class="chart-toggle-group" id="tech-timeframe-controls" style="margin-bottom: 1.5rem;">
-                        <button class="chart-toggle-btn" data-period="all">Todo Histórico</button>
+                    <div class="chart-toggle-group" id="tech-timeframe-controls" style="margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <button class="chart-toggle-btn" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
                         <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
                         <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
                         <button class="chart-toggle-btn active" data-period="1Y">1 Ano</button>
                         <button class="chart-toggle-btn" data-period="6M">6 Meses</button>
                         <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
                         <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                        <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                         <button class="chart-toggle-btn" id="tech-reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                        <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                            <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                            <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                            <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                            <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                        </div>
                     </div>
 
                     <div class="tech-charts-grid">
@@ -384,14 +409,21 @@
                 <div class="modal-header-text">
                     <h2 id="expanded-chart-title" style="font-size: 1.5rem; color: var(--accent-blue);">Visualização Detalhada</h2>
                 </div>
-                <div class="chart-toggle-group" id="modal-timeframe-controls">
-                    <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
+                <div class="chart-toggle-group" id="modal-timeframe-controls" style="flex-wrap: wrap;">
+                    <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
                     <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
                     <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
                     <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
                     <button class="chart-toggle-btn" data-period="6M">6 Meses</button>
                     <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
                     <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                    <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
+                    <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                        <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                        <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                        <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                        <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-body" style="flex: 1; min-height: 0; position: relative;">

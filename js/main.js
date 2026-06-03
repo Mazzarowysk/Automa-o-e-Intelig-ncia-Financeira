@@ -237,12 +237,30 @@ function formatDateLabel(value) {
 }
 
 let activeChartTimeFrame = 'all';
-let activeTechChartTimeFrame = '1Y'; // Padrao: 1 ano a partir de hoje
-let activeRsiChartTimeFrame = 'all';
+let activeChartCustomStart = null;
+let activeChartCustomEnd = null;
 
-function filterHistoryByTimeframe(data, timeframe) {
+let activeTechChartTimeFrame = 'all'; // Padrao agora é all (Global) para unificar
+let activeTechCustomStart = null;
+let activeTechCustomEnd = null;
+
+let activeRsiChartTimeFrame = 'all';
+let activeRsiCustomStart = null;
+let activeRsiCustomEnd = null;
+
+function filterHistoryByTimeframe(data, timeframe, customStart = null, customEnd = null) {
     if (!Array.isArray(data) || data.length === 0) return [];
     if (timeframe === 'all') return data;
+
+    if (timeframe === 'custom') {
+        const s = customStart ? new Date(`${customStart}T00:00:00`) : new Date('1900-01-01');
+        const e = customEnd ? new Date(`${customEnd}T23:59:59`) : new Date('2100-01-01');
+        return data.filter(row => {
+            const rowDateString = String(row.Date).split(' ')[0];
+            const rowDate = new Date(`${rowDateString}T00:00:00`);
+            return rowDate >= s && rowDate <= e;
+        });
+    }
 
     // Sempre usa a data de HOJE como ancora, nao a ultima data do CSV
     const now = new Date();
@@ -271,38 +289,82 @@ function filterHistoryByTimeframe(data, timeframe) {
 }
 
 function setupChartTimeframeControls() {
-    const controls = document.querySelectorAll('#timeframe-controls .chart-toggle-btn[data-period]');
-    const resetZoomBtn = document.getElementById('reset-zoom-btn');
-    if (controls && controls.length > 0) {
+    function setupGroup(groupId, setActiveTimeFrame, setActiveCustom, redrawFunc) {
+        const group = document.getElementById(groupId);
+        if (!group) return;
+        const controls = group.querySelectorAll('.chart-toggle-btn[data-period]');
+        const customContainer = group.querySelector('.custom-dates-container');
+        const customStart = group.querySelector('.custom-start-date');
+        const customEnd = group.querySelector('.custom-end-date');
+        const customBtn = group.querySelector('.custom-search-btn');
+
         controls.forEach(btn => {
             btn.addEventListener('click', () => {
+                const period = btn.dataset.period;
                 controls.forEach(item => item.classList.remove('active'));
                 btn.classList.add('active');
-                activeChartTimeFrame = btn.dataset.period || 'all';
-                drawCharts();
+
+                if (period === 'custom') {
+                    if (customContainer) customContainer.style.display = 'flex';
+                } else {
+                    if (customContainer) customContainer.style.display = 'none';
+                    setActiveTimeFrame(period);
+                    redrawFunc();
+                }
             });
         });
+
+        if (customBtn) {
+            customBtn.addEventListener('click', () => {
+                const start = customStart ? customStart.value : null;
+                const end = customEnd ? customEnd.value : null;
+                if (!start && !end) {
+                    alert('Preencha ao menos uma data.');
+                    return;
+                }
+                setActiveTimeFrame('custom');
+                setActiveCustom(start, end);
+                redrawFunc();
+            });
+        }
     }
 
-    if (resetZoomBtn) {
-        resetZoomBtn.addEventListener('click', () => {
-            resetPriceChartZoom();
-        });
-    }
+    setupGroup('timeframe-controls', 
+        (tf) => { activeChartTimeFrame = tf; }, 
+        (start, end) => { activeChartCustomStart = start; activeChartCustomEnd = end; }, 
+        drawCharts
+    );
 
-    const techControls = document.querySelectorAll('#tech-timeframe-controls .chart-toggle-btn[data-period]');
+    setupGroup('tech-timeframe-controls', 
+        (tf) => { activeTechChartTimeFrame = tf; }, 
+        (start, end) => { activeTechCustomStart = start; activeTechCustomEnd = end; }, 
+        drawTechCharts
+    );
+
+    setupGroup('rsi-timeframe-controls', 
+        (tf) => { activeRsiChartTimeFrame = tf; }, 
+        (start, end) => { activeRsiCustomStart = start; activeRsiCustomEnd = end; }, 
+        drawRsiChart
+    );
+
+    // Modal também
+    setupGroup('modal-timeframe-controls', 
+        (tf) => { activeTechChartTimeFrame = tf; }, 
+        (start, end) => { activeTechCustomStart = start; activeTechCustomEnd = end; }, 
+        () => {
+            drawTechCharts();
+            if (window.currentExpandedChartId) {
+                // Dispara o evento de expandir novamente para recarregar o modal
+                const btn = document.querySelector(`.btn-expand-chart[data-chart="${window.currentExpandedChartId}"]`);
+                if (btn) btn.click();
+            }
+        }
+    );
+
+    const resetZoomBtn = document.getElementById('reset-zoom-btn');
+    if (resetZoomBtn) resetZoomBtn.addEventListener('click', resetPriceChartZoom);
+
     const techResetZoomBtn = document.getElementById('tech-reset-zoom-btn');
-    if (techControls && techControls.length > 0) {
-        techControls.forEach(btn => {
-            btn.addEventListener('click', () => {
-                techControls.forEach(item => item.classList.remove('active'));
-                btn.classList.add('active');
-                activeTechChartTimeFrame = btn.dataset.period || 'all';
-                drawTechCharts();
-            });
-        });
-    }
-
     if (techResetZoomBtn) {
         techResetZoomBtn.addEventListener('click', () => {
             [realPriceChartInstance, ma20ChartInstance, xgbForecastChartInstance, predictionPointsChartInstance]
@@ -311,19 +373,7 @@ function setupChartTimeframeControls() {
         });
     }
 
-    const rsiControls = document.querySelectorAll('#rsi-timeframe-controls .chart-toggle-btn[data-period]');
     const rsiResetZoomBtn = document.getElementById('rsi-reset-zoom-btn');
-    if (rsiControls && rsiControls.length > 0) {
-        rsiControls.forEach(btn => {
-            btn.addEventListener('click', () => {
-                rsiControls.forEach(item => item.classList.remove('active'));
-                btn.classList.add('active');
-                activeRsiChartTimeFrame = btn.dataset.period || 'all';
-                drawRsiChart();
-            });
-        });
-    }
-
     if (rsiResetZoomBtn) {
         rsiResetZoomBtn.addEventListener('click', () => {
             if (rsiChartInstance && rsiChartInstance.options && rsiChartInstance.options.scales && rsiChartInstance.options.scales.x) {
@@ -1034,16 +1084,28 @@ function drawCharts() {
     updateTimestamp();
 }
 
+function getFilteredChartData() {
+    return filterHistoryByTimeframe(globalData.history, activeChartTimeFrame, activeChartCustomStart, activeChartCustomEnd);
+}
+
+function getFilteredTechData() {
+    return filterHistoryByTimeframe(globalData.history, activeTechChartTimeFrame, activeTechCustomStart, activeTechCustomEnd);
+}
+
+function getFilteredRsiData() {
+    return filterHistoryByTimeframe(globalData.history, activeRsiChartTimeFrame, activeRsiCustomStart, activeRsiCustomEnd);
+}
+
 function getVisibleHistory() {
-    return filterHistoryByTimeframe(globalData.history, activeChartTimeFrame);
+    return filterHistoryByTimeframe(globalData.history, activeChartTimeFrame, activeChartCustomStart, activeChartCustomEnd);
 }
 
 function getVisibleTechHistory() {
-    return filterHistoryByTimeframe(globalData.history, activeTechChartTimeFrame);
+    return filterHistoryByTimeframe(globalData.history, activeTechChartTimeFrame, activeTechCustomStart, activeTechCustomEnd);
 }
 
 function getVisibleRsiHistory() {
-    return filterHistoryByTimeframe(globalData.history, activeRsiChartTimeFrame);
+    return filterHistoryByTimeframe(globalData.history, activeRsiChartTimeFrame, activeRsiCustomStart, activeRsiCustomEnd);
 }
 
 window.drawCharts = drawCharts;
@@ -1840,43 +1902,54 @@ let isRetraining = false;
 
 function setupTrainingPanel() {
     const btnRetrain = document.getElementById('btn-retrain');
-    const globalToggle = document.getElementById('global-toggle');
     const startInput = document.getElementById('train-start');
     const endInput = document.getElementById('train-end');
-    const toggleLabel = document.getElementById('toggle-label');
-    const toggleSublabel = document.getElementById('toggle-sublabel');
+    const trainControls = document.querySelectorAll('#train-timeframe-controls .chart-toggle-btn');
 
-    if (!btnRetrain || !globalToggle) return;
+    if (!btnRetrain) return;
 
-    // Função para atualizar estado visual
-    function updateToggleState() {
-        const isGlobal = globalToggle.checked;
-        if (isGlobal) {
-            // Modo Global: travar datas
+    function setDatesByPeriod(period) {
+        const today = new Date();
+        const endStr = today.toISOString().split('T')[0];
+        
+        if (period === 'all') {
             startInput.value = '2000-12-21';
-            const today = new Date();
-            endInput.value = today.toISOString().split('T')[0];
+            endInput.value = endStr;
             startInput.disabled = true;
             endInput.disabled = true;
-            toggleLabel.textContent = 'Modo Global';
-            toggleLabel.style.color = 'var(--accent-blue)';
-            toggleSublabel.textContent = 'Todo o histórico';
-        } else {
-            // Modo Customizado: liberar datas
+        } else if (period === 'custom') {
             startInput.disabled = false;
             endInput.disabled = false;
-            toggleLabel.textContent = 'Período Customizado';
-            toggleLabel.style.color = 'var(--accent-purple)';
-            toggleSublabel.textContent = 'Defina as datas';
+        } else {
+            const start = new Date(today);
+            const days = { '7d': 7, '30d': 30, '90d': 90, '180d': 180, '365d': 365 }[period];
+            if (days) start.setDate(start.getDate() - days);
+            startInput.value = start.toISOString().split('T')[0];
+            endInput.value = endStr;
+            startInput.disabled = true;
+            endInput.disabled = true;
         }
         updatePregoesCount();
+    }
+
+    if (trainControls && trainControls.length > 0) {
+        trainControls.forEach(btn => {
+            btn.addEventListener('click', () => {
+                trainControls.forEach(item => item.classList.remove('active'));
+                btn.classList.add('active');
+                setDatesByPeriod(btn.dataset.trainPeriod);
+            });
+        });
+        // Init
+        setDatesByPeriod('all');
     }
 
     function updatePregoesCount() {
         const countSpan = document.getElementById('pregoes-count');
         if (!countSpan) return;
         
-        if (globalToggle.checked) {
+        const activeBtn = document.querySelector('#train-timeframe-controls .chart-toggle-btn.active');
+        if (activeBtn && activeBtn.dataset.trainPeriod === 'all') {
             countSpan.textContent = '';
             countSpan.style.display = 'none';
         } else {
@@ -1892,15 +1965,9 @@ function setupTrainingPanel() {
         }
     }
 
-    // Evento da chavinha
-    globalToggle.addEventListener('change', updateToggleState);
-    
     [startInput, endInput].forEach(input => {
         input.addEventListener('change', updatePregoesCount);
     });
-
-    // Estado inicial (Global ativo por padrão)
-    updateToggleState();
 
     // Botão Retreinar
     btnRetrain.addEventListener('click', async () => {
@@ -1914,53 +1981,76 @@ function setupTrainingPanel() {
             return;
         }
 
-        if (new Date(start) >= new Date(end)) {
-            alert('A data de início deve ser anterior à data de fim.');
-            return;
-        }
-
-        const statusEl = document.getElementById('training-status');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const modeText = globalToggle.checked ? 'GLOBAL (todo o histórico)' : 'CUSTOMIZADO';
-
-        // Ativar loading
         isRetraining = true;
-        btnRetrain.disabled = true;
-        loadingOverlay.classList.add('active');
-        statusEl.className = 'training-status loading';
-        statusEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Treinando IA em modo ' + modeText + ' (' + start + ' até ' + end + ')...';
+        
+        // Sincronizar painel de sentimento com as datas de treinamento
+        const sentimentStart = document.getElementById('sentiment-start');
+        const sentimentEnd = document.getElementById('sentiment-end');
+        if (sentimentStart && sentimentEnd) {
+            sentimentStart.value = start;
+            sentimentEnd.value = end;
+            // Atualizar UI dos botoes de sentimento para "Personalizado"
+            const sentimentBtns = document.querySelectorAll('[data-sentiment-period]');
+            sentimentBtns.forEach(b => b.classList.remove('active'));
+            const customBtn = document.querySelector('[data-sentiment-period="custom"]');
+            if(customBtn) customBtn.classList.add('active');
+            const customDatesEl = document.getElementById('sentiment-custom-dates');
+            if(customDatesEl) customDatesEl.style.display = 'flex';
+        }
+        
+        // Disparar a busca de noticias paralelamente ao treinamento
+        fetchSentimentByPeriod(start, end);
+
+        const overlay = document.getElementById('loading-overlay');
+        const statusDiv = document.getElementById('training-status');
+        
+        if (overlay) overlay.classList.add('active');
+        if (statusDiv) {
+            statusDiv.className = 'training-status loading';
+            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Iniciando treinamento do modelo XGBoost...';
+        }
 
         try {
             const response = await fetch('/retrain', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start: start, end: end })
+                body: JSON.stringify({ start, end })
             });
 
             const result = await response.json();
 
             if (result.status === 'success') {
-                statusEl.className = 'training-status success';
-                statusEl.innerHTML = '<i class="fa-solid fa-check-circle"></i> Treinamento concluído com sucesso! Recarregando dados...';
+                if (statusDiv) {
+                    statusDiv.className = 'training-status success';
+                    statusDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Treinamento concluído com sucesso!';
+                }
                 
-                // Recarregar dados
-                await Promise.all([loadMetrics(), loadChartData()]);
+                // Recarregar os dados para atualizar os gráficos
+                await Promise.all([
+                    loadMetrics(),
+                    loadChartData()
+                ]);
                 updateTimestamp();
-
+                
                 setTimeout(() => {
-                    statusEl.className = 'training-status';
-                    statusEl.innerHTML = '';
+                    if (statusDiv) {
+                        statusDiv.className = 'training-status';
+                        statusDiv.innerHTML = '';
+                    }
                 }, 5000);
             } else {
                 throw new Error(result.message || 'Erro desconhecido');
             }
         } catch (error) {
-            statusEl.className = 'training-status error';
-            statusEl.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Erro: ' + error.message;
+            if (statusDiv) {
+                statusDiv.className = 'training-status error';
+                statusDiv.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Erro: ' + error.message;
+            }
         } finally {
             isRetraining = false;
-            btnRetrain.disabled = false;
-            loadingOverlay.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            const btn = document.getElementById('btn-retrain');
+            if (btn) btn.disabled = false;
         }
     });
 }

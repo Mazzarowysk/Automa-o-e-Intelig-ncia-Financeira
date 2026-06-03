@@ -22,3 +22,6 @@ venv/
 # Temporary files
 *.tmp
 *.swp
+
+# Configuração local com chaves de API (não enviar ao GitHub!)
+config.py

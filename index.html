@@ -156,7 +156,7 @@
                 <div class="sentiment-filters" id="sentiment-filters">
                     <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-circle-info" style="color: var(--accent-blue);"></i>
-                        Nota: A API gratuita do Yahoo Finance retorna um limite máximo fixo de 10 notícias mais recentes. Filtros históricos farão o recorte apenas dentro deste lote final.
+                        <span id="sentiment-api-notice">Carregando fonte de dados...</span>
                     </p>
                     <div class="sentiment-period-btns">
                         <button class="chart-toggle-btn active" data-sentiment-period="7d">1 Semana</button>
@@ -186,7 +186,7 @@
                     </div>
                 </div>
                 <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
-                    <i class="fa-solid fa-circle-info"></i> Nota: A API gratuita de notícias limita os resultados às últimas publicações mais recentes. Filtros históricos aplicarão restrição de data apenas sobre esse lote recente.
+                    <i class="fa-solid fa-satellite-dish"></i> Fonte atual: <span id="sentiment-source-badge" style="font-weight:600; color: #94a3b8;">--</span>
                 </div>
 
                 <div class="sentiment-body" style="display: flex; flex-wrap: wrap; gap: 2rem; padding-top: 1rem;">

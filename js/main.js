@@ -26,6 +26,25 @@ function renderSentimentData(data) {
     const fill = document.getElementById('sentiment-fill');
     const newsList = document.getElementById('sentiment-news-list');
 
+    // Badge e aviso dinâmico de fonte da API
+    const noticeEl     = document.getElementById('sentiment-api-notice');
+    const sourceBadgeEl= document.getElementById('sentiment-source-badge');
+    const isAlphaVantage = data.fonte && data.fonte.includes('Alpha Vantage');
+
+    if (noticeEl) {
+        if (isAlphaVantage) {
+            noticeEl.innerHTML = '✅ <strong>Alpha Vantage</strong> ativa — até 50 notícias históricas reais por período.';
+            noticeEl.style.color = '#10b981';
+        } else {
+            noticeEl.innerHTML = '⚠️ Modo Yahoo Finance — limite de ~10 notícias recentes. Configure a chave Alpha Vantage em <code>config.py</code> para dados históricos completos.';
+            noticeEl.style.color = '#f59e0b';
+        }
+    }
+    if (sourceBadgeEl) {
+        sourceBadgeEl.textContent = data.fonte || 'Yahoo Finance + VADER NLP';
+        sourceBadgeEl.style.color = isAlphaVantage ? '#10b981' : '#f59e0b';
+    }
+
     if (data.erro && !data.noticias?.length) {
         statusEl.textContent = 'Indisponível';
         statusEl.style.color = '#94a3b8';
@@ -35,29 +54,26 @@ function renderSentimentData(data) {
         return;
     }
 
-    const score = data.score_medio ?? 0;
-    const cls = data.classificacao ?? 'Neutro';
-    const percent = ((score + 1) / 2) * 100;
-    const newsCount = data.noticias?.length ?? 0;
+    const score    = data.score_medio ?? 0;
+    const cls      = data.classificacao ?? 'Neutro';
+    const percent  = ((score + 1) / 2) * 100;
+    const newsCount= data.noticias?.length ?? 0;
 
-    // Atualizar contador
     const countEl = document.getElementById('sentiment-news-count');
     if (countEl) countEl.textContent = newsCount;
 
     fill.style.width = percent + '%';
-    
+
+    // Thresholds adaptados por fonte
+    const thr = isAlphaVantage ? 0.05 : 0.15;
     let mainEmoji = '😐';
-    if (score >= 0.15) mainEmoji = '😃';
-    else if (score <= -0.15) mainEmoji = '😡';
-    
-    statusEl.textContent = `${mainEmoji} ${cls}`;
-    scoreTextEl.textContent = `Score Médio: ${score.toFixed(2)}`;
+    if (score >= thr)  mainEmoji = '😃';
+    if (score <= -thr) mainEmoji = '😡';
 
-    if (score >= 0.15)       statusEl.style.color = '#10b981';
-    else if (score <= -0.15) statusEl.style.color = '#ef4444';
-    else                     statusEl.style.color = '#f59e0b';
+    statusEl.textContent      = `${mainEmoji} ${cls}`;
+    scoreTextEl.textContent   = `Score Médio: ${score.toFixed(4)}`;
+    statusEl.style.color      = score >= thr ? '#10b981' : score <= -thr ? '#ef4444' : '#f59e0b';
 
-    // Exibir período analisado
     if (periodInfoEl && data.periodo) {
         const { inicio, fim } = data.periodo;
         if (inicio || fim) {
@@ -72,11 +88,13 @@ function renderSentimentData(data) {
     if (data.noticias && data.noticias.length > 0) {
         data.noticias.forEach(news => {
             let badgeColor = '#f59e0b', badgeText = '😐 NEUTRO';
-            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = '😃 OTIMISMO'; }
-            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = '😡 PESSIMISMO'; }
+            if (news.score >= thr)  { badgeColor = '#10b981'; badgeText = '😃 OTIMISMO'; }
+            if (news.score <= -thr) { badgeColor = '#ef4444'; badgeText = '😡 PESSIMISMO'; }
 
             const linkOpen  = news.link ? `<a href="${news.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">` : '';
             const linkClose = news.link ? `</a>` : '';
+            // Alpha Vantage envia 'fonte' (veículo); Yahoo não envia
+            const fonteHtml = news.fonte ? `<span style="color:#475569;font-size:0.68rem;margin-left:6px;">📰 ${news.fonte}</span>` : '';
 
             newsList.innerHTML += `
                 <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;border-left:3px solid ${badgeColor};">
@@ -85,8 +103,11 @@ function renderSentimentData(data) {
                         <span style="flex:1;margin-right:8px">${news.titulo}</span>
                         <span style="background:${badgeColor}20;color:${badgeColor};padding:2px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap;flex-shrink:0">${badgeText}</span>
                     </h5>
-                    <p style="margin:0 0 5px 0;font-size:0.8rem;color:#94a3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${news.resumo}</p>
-                    <small style="color:#64748b;font-size:0.7rem;">${news.data || 'Data desconhecida'}</small>
+                    <p style="margin:0 0 5px 0;font-size:0.8rem;color:#94a3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${news.resumo || 'Sem resumo disponível.'}</p>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <small style="color:#64748b;font-size:0.7rem;">${news.data || 'Data desconhecida'}</small>
+                        ${fonteHtml}
+                    </div>
                     ${linkClose}
                 </div>`;
         });

@@ -6,7 +6,17 @@ import threading
 import time
 import subprocess
 import json
+import urllib.request
+import urllib.parse
 from datetime import datetime, timedelta
+
+# === Configuração da API Alpha Vantage ===
+try:
+    from config import ALPHA_VANTAGE_KEY
+except ImportError:
+    ALPHA_VANTAGE_KEY = ""
+
+USE_ALPHA_VANTAGE = bool(ALPHA_VANTAGE_KEY and ALPHA_VANTAGE_KEY != "SUA_CHAVE_AQUI")
 
 def calcular_data_fim_padrao():
     """Retorna o ultimo dia util (D-1). Se hoje eh segunda, retorna sexta."""
@@ -35,16 +45,150 @@ def heartbeat_monitor():
 
 threading.Thread(target=heartbeat_monitor, daemon=True).start()
 
-def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
+# ─────────────────────────────────────────────────────────────
+# Mapeamento de labels Alpha Vantage → português
+# ─────────────────────────────────────────────────────────────
+AV_LABEL_MAP = {
+    "Bullish":          ("Otimismo Extremo",  0.6),
+    "Somewhat-Bullish": ("Otimismo",           0.25),
+    "Neutral":          ("Neutro",             0.0),
+    "Somewhat-Bearish": ("Pessimismo",        -0.25),
+    "Bearish":          ("Pessimismo Extremo",-0.6),
+}
+
+
+def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None):
     """
-    Busca noticias do Yahoo Finance e filtra por periodo.
-    Retorna dict com score_medio, classificacao e noticias.
+    Busca notícias e sentimento via Alpha Vantage NEWS_SENTIMENT.
+    Suporta filtro real de período histórico com até 50 notícias por req.
     """
     resultado = {
         "score_medio": 0.0,
         "classificacao": "Neutro",
         "noticias": [],
         "periodo": {"inicio": start_date_str, "fim": end_date_str},
+        "fonte": "Alpha Vantage",
+        "atualizado_em": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    # Formatar datas para o padrão Alpha Vantage: YYYYMMDDTHHMM
+    time_from = ""
+    time_to   = ""
+    if start_date_str:
+        try:
+            dt = datetime.strptime(start_date_str, "%Y-%m-%d")
+            time_from = dt.strftime("%Y%m%dT0000")
+        except:
+            pass
+    if end_date_str:
+        try:
+            dt = datetime.strptime(end_date_str, "%Y-%m-%d")
+            time_to = dt.strftime("%Y%m%dT2359")
+        except:
+            pass
+
+    # Construir URL
+    params = {
+        "function": "NEWS_SENTIMENT",
+        "tickers":  "ITUB",
+        "limit":    "50",
+        "sort":     "LATEST",
+        "apikey":   ALPHA_VANTAGE_KEY,
+    }
+    if time_from:
+        params["time_from"] = time_from
+    if time_to:
+        params["time_to"]   = time_to
+
+    url = "https://www.alphavantage.co/query?" + urllib.parse.urlencode(params)
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "ITUB4-Quantum/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        resultado["erro"] = f"Erro na requisição Alpha Vantage: {e}"
+        return resultado
+
+    if "Information" in data:
+        resultado["erro"] = f"Limite da API atingido: {data['Information']}"
+        return resultado
+
+    feed = data.get("feed", [])
+    if not feed:
+        resultado["erro"] = "Nenhuma notícia retornada pela Alpha Vantage para este período."
+        return resultado
+
+    scores = []
+    for item in feed:
+        title   = item.get("title",   "")
+        summary = item.get("summary", "")
+        url_art = item.get("url",     "")
+        source  = item.get("source",  "")
+
+        # Data publicação: formato "20241201T143000"
+        time_pub = item.get("time_published", "")
+        pub_date_display = "Data desconhecida"
+        if time_pub:
+            try:
+                dt = datetime.strptime(time_pub[:15], "%Y%m%dT%H%M%S")
+                pub_date_display = dt.strftime("%d/%m/%Y")
+            except:
+                pub_date_display = time_pub[:8]
+
+        # Preferir score específico do ticker ITUB; senão usar score geral
+        ticker_score = None
+        for ts in item.get("ticker_sentiment", []):
+            if ts.get("ticker", "").upper() == "ITUB":
+                try:
+                    ticker_score = float(ts["ticker_sentiment_score"])
+                except:
+                    pass
+                break
+
+        score = ticker_score if ticker_score is not None else item.get("overall_sentiment_score", 0.0)
+        try:
+            score = float(score)
+        except:
+            score = 0.0
+
+        scores.append(score)
+        resultado["noticias"].append({
+            "titulo":  title,
+            "resumo":  summary,
+            "score":   score,
+            "data":    pub_date_display,
+            "fonte":   source,
+            "link":    url_art,
+        })
+
+    if scores:
+        media = sum(scores) / len(scores)
+        resultado["score_medio"] = round(media, 4)
+
+        if   media >= 0.35:  resultado["classificacao"] = "Otimismo Extremo"
+        elif media >= 0.05:  resultado["classificacao"] = "Otimismo"
+        elif media > -0.05:  resultado["classificacao"] = "Neutro"
+        elif media > -0.35:  resultado["classificacao"] = "Pessimismo"
+        else:                resultado["classificacao"] = "Pessimismo Extremo"
+    else:
+        resultado["classificacao"] = "Sem dados"
+        resultado["erro"]          = "Nenhuma notícia encontrada no período selecionado."
+
+    return resultado
+
+
+def analisar_sentimento_yfinance(start_date_str=None, end_date_str=None):
+    """
+    Fallback: busca notícias do Yahoo Finance e calcula sentimento com VADER.
+    Limitado a ~10 notícias recentes (restrição da API gratuita do Yahoo).
+    """
+    resultado = {
+        "score_medio": 0.0,
+        "classificacao": "Neutro",
+        "noticias": [],
+        "periodo": {"inicio": start_date_str, "fim": end_date_str},
+        "fonte": "Yahoo Finance + VADER NLP",
         "atualizado_em": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
@@ -59,39 +203,33 @@ def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
         import yfinance as yf
         ticker = yf.Ticker("ITUB")
         news = ticker.news
-
         if not news:
             resultado["erro"] = "Nenhuma notícia encontrada."
             return resultado
 
-        # Converter datas de filtro para timestamps
         start_ts = None
-        end_ts = None
+        end_ts   = None
         if start_date_str:
             try:
-                start_dt = datetime.strptime(start_date_str, "%Y-%m-%d")
-                start_ts = start_dt.timestamp()
+                start_ts = datetime.strptime(start_date_str, "%Y-%m-%d").timestamp()
             except:
                 pass
         if end_date_str:
             try:
-                end_dt = datetime.strptime(end_date_str, "%Y-%m-%d")
-                end_dt = end_dt.replace(hour=23, minute=59, second=59)
+                end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
                 end_ts = end_dt.timestamp()
             except:
                 pass
 
         scores = []
-        for item in news[:30]:  # Buscar top 30 para ter mais dados após filtro
+        for item in news[:30]:
             content = item.get('content', {})
-            title = content.get('title', '') or item.get('title', '')
+            title   = content.get('title',   '') or item.get('title',   '')
             summary = content.get('summary', '') or item.get('summary', '')
-
-            texto = f"{title}. {summary}".strip()
+            texto   = f"{title}. {summary}".strip()
             if not texto or texto == ".":
                 continue
 
-            # Data da notícia
             pub_date_raw = content.get('pubDate', '') or item.get('providerPublishTime', '')
             pub_ts = None
             pub_date_display = 'Data desconhecida'
@@ -107,43 +245,31 @@ def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
                 except:
                     pub_date_display = pub_date_raw.split('T')[0] if 'T' in pub_date_raw else pub_date_raw
 
-            # Filtrar por período se especificado
             if pub_ts is not None:
-                if start_ts and pub_ts < start_ts:
-                    continue
-                if end_ts and pub_ts > end_ts:
-                    continue
-            # Se a data é desconhecida e há filtro, incluir mesmo assim (best effort)
+                if start_ts and pub_ts < start_ts: continue
+                if end_ts   and pub_ts > end_ts:   continue
 
             vs = analyzer.polarity_scores(texto)
             compound = vs['compound']
             scores.append(compound)
-
             resultado["noticias"].append({
                 "titulo": title,
                 "resumo": summary,
-                "score": compound,
-                "data": pub_date_display,
-                "link": content.get('canonicalUrl', {}).get('url', '') or item.get('link', '')
+                "score":  compound,
+                "data":   pub_date_display,
+                "link":   content.get('canonicalUrl', {}).get('url', '') or item.get('link', '')
             })
-
-            if len(scores) >= 15:  # Limitar a 15 noticias
+            if len(scores) >= 15:
                 break
 
         if scores:
             media = sum(scores) / len(scores)
-            resultado["score_medio"] = media
-
-            if media >= 0.5:
-                resultado["classificacao"] = "Otimismo Extremo"
-            elif media >= 0.15:
-                resultado["classificacao"] = "Otimismo"
-            elif media > -0.15:
-                resultado["classificacao"] = "Neutro"
-            elif media > -0.5:
-                resultado["classificacao"] = "Pessimismo"
-            else:
-                resultado["classificacao"] = "Pessimismo Extremo"
+            resultado["score_medio"] = round(media, 4)
+            if   media >= 0.5:  resultado["classificacao"] = "Otimismo Extremo"
+            elif media >= 0.15: resultado["classificacao"] = "Otimismo"
+            elif media > -0.15: resultado["classificacao"] = "Neutro"
+            elif media > -0.5:  resultado["classificacao"] = "Pessimismo"
+            else:               resultado["classificacao"] = "Pessimismo Extremo"
         else:
             resultado["classificacao"] = "Sem dados"
             resultado["erro"] = "Nenhuma notícia encontrada no período selecionado."
@@ -152,6 +278,19 @@ def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
         resultado["erro"] = str(e)
 
     return resultado
+
+
+def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
+    """
+    Ponto de entrada único para análise de sentimento.
+    Usa Alpha Vantage se a chave estiver configurada; caso contrário, usa yfinance + VADER.
+    """
+    if USE_ALPHA_VANTAGE:
+        print(f"[INFO] Usando Alpha Vantage para sentimento ({start_date_str} → {end_date_str})")
+        return analisar_sentimento_alpha_vantage(start_date_str, end_date_str)
+    else:
+        print(f"[INFO] Usando Yahoo Finance + VADER para sentimento (chave Alpha Vantage não configurada)")
+        return analisar_sentimento_yfinance(start_date_str, end_date_str)
 
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):

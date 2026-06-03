@@ -43,6 +43,7 @@ function formatDateLabel(value) {
 }
 
 let activeChartTimeFrame = 'all';
+let activeTechChartTimeFrame = 'all';
 
 function filterHistoryByTimeframe(data, timeframe) {
     if (!Array.isArray(data) || data.length === 0) return [];
@@ -90,6 +91,27 @@ function setupChartTimeframeControls() {
             resetPriceChartZoom();
         });
     }
+
+    const techControls = document.querySelectorAll('#tech-timeframe-controls .chart-toggle-btn[data-period]');
+    const techResetZoomBtn = document.getElementById('tech-reset-zoom-btn');
+    if (techControls && techControls.length > 0) {
+        techControls.forEach(btn => {
+            btn.addEventListener('click', () => {
+                techControls.forEach(item => item.classList.remove('active'));
+                btn.classList.add('active');
+                activeTechChartTimeFrame = btn.dataset.period || 'all';
+                drawTechCharts();
+            });
+        });
+    }
+
+    if (techResetZoomBtn) {
+        techResetZoomBtn.addEventListener('click', () => {
+            [realPriceChartInstance, ma20ChartInstance, xgbForecastChartInstance, predictionPointsChartInstance]
+                .filter(Boolean)
+                .forEach(chart => chart.resetZoom());
+        });
+    }
 }
 
 function resetPriceChartZoom() {
@@ -114,6 +136,8 @@ let realPriceChartInstance = null;
 let ma20ChartInstance = null;
 let xgbForecastChartInstance = null;
 let predictionPointsChartInstance = null;
+
+let expandedChartInstance = null;
 
 /**
  * Event Listeners Principais
@@ -151,14 +175,78 @@ function setupEventListeners() {
     }
 
     const kpiModalOverlay = document.getElementById('kpi-modal');
+    const chartExpandModal = document.getElementById('chart-expand-modal');
+    
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             if (kpiModalOverlay && kpiModalOverlay.classList.contains('active')) {
                 kpiModalOverlay.classList.remove('active');
             }
+            if (chartExpandModal && chartExpandModal.classList.contains('active')) {
+                chartExpandModal.classList.remove('active');
+                if (expandedChartInstance) expandedChartInstance.destroy();
+            }
             if (infoPanel && infoPanel.classList.contains('active')) {
                 infoPanel.classList.remove('active');
             }
+        }
+    });
+
+    const btnCloseExpanded = document.getElementById('btn-close-expanded');
+    if (btnCloseExpanded) {
+        btnCloseExpanded.addEventListener('click', () => {
+            if (chartExpandModal) chartExpandModal.classList.remove('active');
+            if (expandedChartInstance) expandedChartInstance.destroy();
+        });
+    }
+
+    // Lógica para botões de expandir gráficos
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-expand-chart');
+        if (!btn) return;
+        
+        const chartId = btn.getAttribute('data-chart');
+        let sourceChart = null;
+        let title = '';
+
+        if (chartId === 'realPriceChart') { sourceChart = realPriceChartInstance; title = 'Preço Real (ITUB4)'; }
+        else if (chartId === 'ma20Chart') { sourceChart = ma20ChartInstance; title = 'Média Móvel (20d)'; }
+        else if (chartId === 'xgbForecastChart') { sourceChart = xgbForecastChartInstance; title = 'Previsão IA (XGBoost)'; }
+        else if (chartId === 'predictionPointsChart') { sourceChart = predictionPointsChartInstance; title = 'Pontos de Previsão'; }
+        
+        if (sourceChart && chartExpandModal) {
+            document.getElementById('expanded-chart-title').innerText = title;
+            chartExpandModal.classList.add('active');
+            
+            const ctx = document.getElementById('expandedChart').getContext('2d');
+            if (expandedChartInstance) expandedChartInstance.destroy();
+            
+            // Deep clone data and options from source chart
+            const sourceData = JSON.parse(JSON.stringify(sourceChart.data));
+            const sourceOptions = JSON.parse(JSON.stringify(sourceChart.options));
+            
+            // Ajustar opções para visualização grande
+            sourceOptions.plugins.legend.labels.font.size = 14;
+            sourceOptions.plugins.tooltip.titleFont.size = 16;
+            sourceOptions.plugins.tooltip.bodyFont.size = 14;
+            sourceOptions.scales.x.ticks.font = {size: 14};
+            sourceOptions.scales.y.ticks.font = {size: 14};
+            
+            // Ativar zoom no expanded chart
+            sourceOptions.plugins.zoom = {
+                pan: { enabled: true, mode: 'x' },
+                zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+            };
+
+            // Remover plugins customizados problemáticos do clone (futureAreaTech etc) se necessário
+            const pluginsToCopy = [];
+
+            expandedChartInstance = new Chart(ctx, {
+                type: sourceChart.config.type,
+                data: sourceData,
+                options: sourceOptions,
+                plugins: pluginsToCopy
+            });
         }
     });
 
@@ -648,6 +736,10 @@ function getVisibleHistory() {
     return filterHistoryByTimeframe(globalData.history, activeChartTimeFrame);
 }
 
+function getVisibleTechHistory() {
+    return filterHistoryByTimeframe(globalData.history, activeTechChartTimeFrame);
+}
+
 window.drawCharts = drawCharts;
 
 window.addEventListener('resize', () => {
@@ -974,7 +1066,7 @@ function setupPriceChartWheelZoom() {
 }
 
 function drawTechCharts() {
-    const histData = getVisibleHistory();
+    const histData = getVisibleTechHistory();
     const predData = globalData.predictions;
     if (!histData || histData.length === 0) return;
 

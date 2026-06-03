@@ -43,15 +43,16 @@ function formatDateLabel(value) {
 }
 
 let activeChartTimeFrame = 'all';
-let activeTechChartTimeFrame = 'all';
+let activeTechChartTimeFrame = '1Y'; // Padrao: 1 ano a partir de hoje
 
 function filterHistoryByTimeframe(data, timeframe) {
     if (!Array.isArray(data) || data.length === 0) return [];
     if (timeframe === 'all') return data;
 
-    const lastDateString = String(data[data.length - 1].Date).split(' ')[0];
-    const endDate = new Date(`${lastDateString}T00:00:00`);
-    const startDate = new Date(endDate);
+    // Sempre usa a data de HOJE como ancora, nao a ultima data do CSV
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const startDate = new Date(now);
 
     if (timeframe === '5Y') {
         startDate.setFullYear(startDate.getFullYear() - 5);
@@ -59,6 +60,8 @@ function filterHistoryByTimeframe(data, timeframe) {
         startDate.setFullYear(startDate.getFullYear() - 3);
     } else if (timeframe === '1Y') {
         startDate.setFullYear(startDate.getFullYear() - 1);
+    } else if (timeframe === '6M') {
+        startDate.setMonth(startDate.getMonth() - 6);
     } else if (timeframe === '3M') {
         startDate.setMonth(startDate.getMonth() - 3);
     } else if (timeframe === '1M') {
@@ -1356,6 +1359,40 @@ function drawTechCharts() {
         }
     });
     window.predictionPointsChartInstance = predictionPointsChartInstance;
+
+    // Adicionar zoom via scroll em todos os 4 graficos tecnicos
+    [realPriceChartInstance, ma20ChartInstance, xgbForecastChartInstance, predictionPointsChartInstance].forEach(instance => {
+        if (!instance || !instance.canvas) return;
+        const canvas = instance.canvas;
+        if (canvas.__techWheelZoom) return;
+        canvas.addEventListener('wheel', (event) => {
+            if (!instance.scales || !instance.scales.x) return;
+            event.preventDefault();
+            const total = instance.data.labels.length;
+            const currentMin = Number.isFinite(instance.options.scales.x.min) ? instance.options.scales.x.min : 0;
+            const currentMax = Number.isFinite(instance.options.scales.x.max) ? instance.options.scales.x.max : total - 1;
+            const currentRange = Math.max(5, currentMax - currentMin);
+            const zoomStep = Math.max(1, Math.round(currentRange * 0.18));
+            const newRange = event.deltaY < 0 ? Math.max(5, currentRange - zoomStep) : Math.min(total - 1, currentRange + zoomStep);
+            const rect = canvas.getBoundingClientRect();
+            const xPixel = event.clientX - rect.left;
+            let centerValue = instance.scales.x.getValueForPixel ? instance.scales.x.getValueForPixel(xPixel) : currentMin + currentRange / 2;
+            if (typeof centerValue !== 'number' || isNaN(centerValue)) centerValue = currentMin + currentRange / 2;
+            let newMin = Math.round(centerValue - newRange / 2);
+            let newMax = Math.round(centerValue + newRange / 2);
+            if (newMin < 0) { newMin = 0; newMax = newRange; }
+            if (newMax > total - 1) { newMax = total - 1; newMin = Math.max(0, newMax - newRange); }
+            instance.options.scales.x.min = newMin;
+            instance.options.scales.x.max = newMax;
+            instance.update('none');
+        }, { passive: false });
+        canvas.addEventListener('dblclick', () => {
+            instance.options.scales.x.min = undefined;
+            instance.options.scales.x.max = undefined;
+            instance.update('none');
+        });
+        canvas.__techWheelZoom = true;
+    });
 }
 
 function drawRsiChart() {

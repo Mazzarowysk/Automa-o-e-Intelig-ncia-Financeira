@@ -982,9 +982,24 @@ def executar_streamlit():
     subprocess.run([sys.executable, '-m', 'streamlit', 'run', script_path, '--', '--modo-streamlit'])
 
 
-def baixar_dados_dolar(start="1995-01-01", end="2026-06-03"):
+def calcular_data_fim_padrao():
+    """Retorna o dia util anterior a hoje (D-1).
+    Se hoje eh segunda, retorna sexta-feira anterior.
+    Isso garante que a API sempre busca ate o ultimo pregao disponivel."""
+    hoje = datetime.now().date()
+    # Voltar 1 dia
+    ontem = hoje - timedelta(days=1)
+    # Se ontem for sabado (5) ou domingo (6), voltar para sexta
+    while ontem.weekday() >= 5:
+        ontem -= timedelta(days=1)
+    return ontem.strftime("%Y-%m-%d")
+
+
+def baixar_dados_dolar(start="1995-01-01", end=None):
     try:
         import requests
+        if end is None:
+            end = calcular_data_fim_padrao()
         # Converter datas para o formato do BCB dd/MM/yyyy
         dt_start = datetime.strptime(start, "%Y-%m-%d").strftime("%d/%m/%Y")
         dt_end = datetime.strptime(end, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -1010,7 +1025,9 @@ def baixar_dados_dolar(start="1995-01-01", end="2026-06-03"):
         print(f"⚠️ Erro ao baixar dados do Dólar (BCB): {e}")
         return pd.DataFrame()
 
-def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end="2026-06-03", arquivo="itub4_historico.csv"):
+def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end=None, arquivo="itub4_historico.csv"):
+    if end is None:
+        end = calcular_data_fim_padrao()
     if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
         print(f"\n📥 Baixando dados atualizados de {ticker} via yfinance e Dólar via BCB...")
     try:
@@ -1050,8 +1067,10 @@ def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end="2026-06
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="ITUB4 Analysis")
+    # Valor padrao do end date: D-1 (ultimo dia util)
+    data_fim_padrao = calcular_data_fim_padrao()
     parser.add_argument('--start', type=str, default="1995-01-01", help="Start date YYYY-MM-DD")
-    parser.add_argument('--end', type=str, default="2026-06-03", help="End date YYYY-MM-DD")
+    parser.add_argument('--end', type=str, default=data_fim_padrao, help="End date YYYY-MM-DD (padrao: D-1)")
     parser.add_argument('--modo-streamlit', action='store_true', help="Run in Streamlit mode")
     parser.add_argument('--no-dashboard', action='store_true', help="Do not start Streamlit server after processing")
     

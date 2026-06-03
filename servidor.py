@@ -6,6 +6,15 @@ import threading
 import time
 import subprocess
 import json
+from datetime import datetime, timedelta
+
+def calcular_data_fim_padrao():
+    """Retorna o ultimo dia util (D-1). Se hoje eh segunda, retorna sexta."""
+    hoje = datetime.now().date()
+    ontem = hoje - timedelta(days=1)
+    while ontem.weekday() >= 5:  # 5=sabado, 6=domingo
+        ontem -= timedelta(days=1)
+    return ontem.strftime("%Y-%m-%d")
 
 PORT = 8000
 
@@ -52,7 +61,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 data = json.loads(post_data)
                 start_date = data.get('start', '1995-01-01')
-                end_date = data.get('end', '2026-06-03')
+                end_date = data.get('end', calcular_data_fim_padrao())
                 
                 print(f"\n[INFO] Solicitacao de retreinamento recebida: {start_date} a {end_date}")
                 print("[INFO] Treinando modelo... Isso pode levar alguns minutos.")

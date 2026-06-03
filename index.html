@@ -144,6 +144,66 @@
                 </div>
             </section>
 
+            <!-- Market Sentiment Section -->
+            <section id="sentiment-section" class="sentiment-panel glass-panel" style="margin-bottom: 2rem;">
+                <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <h3><i class="fa-solid fa-newspaper"></i> Termômetro de Sentimento do Mercado <i class="fa-regular fa-circle-question tooltip-icon" title="O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas ao Itaú Unibanco. Filtre por período para ver como o sentimento evoluiu ao longo do tempo."></i></h3>
+                </div>
+
+                <!-- Filtros de Período -->
+                <div class="sentiment-filters" id="sentiment-filters">
+                    <div class="sentiment-period-btns">
+                        <button class="chart-toggle-btn active" data-sentiment-period="7d">1 Semana</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="30d">1 Mês</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="90d">3 Meses</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="180d">6 Meses</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="365d">1 Ano</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="all">Todo Período</button>
+                        <button class="chart-toggle-btn" data-sentiment-period="custom" id="btn-sentiment-custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
+                    </div>
+                    <!-- Campos de data personalizado (ocultos por padrão) -->
+                    <div class="sentiment-custom-dates" id="sentiment-custom-dates" style="display: none;">
+                        <div class="sentiment-date-field">
+                            <label for="sentiment-start">De:</label>
+                            <input type="date" id="sentiment-start">
+                        </div>
+                        <div class="sentiment-date-field">
+                            <label for="sentiment-end">Até:</label>
+                            <input type="date" id="sentiment-end">
+                        </div>
+                        <button class="btn-retrain" id="btn-sentiment-search" style="padding: 0.5rem 1.2rem; font-size: 0.85rem; white-space: nowrap;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+                        </button>
+                    </div>
+                    <div class="sentiment-loading" id="sentiment-loading" style="display: none;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> <span>Buscando notícias...</span>
+                    </div>
+                </div>
+
+                <div class="sentiment-body" style="display: flex; flex-wrap: wrap; gap: 2rem; padding-top: 1rem;">
+                    <div class="sentiment-gauge" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                        <div class="gauge-bar-container" style="width: 100%; height: 24px; background: rgba(255,255,255,0.05); border-radius: 12px; position: relative; overflow: hidden; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div class="gauge-fill" id="sentiment-fill" style="height: 100%; width: 50%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); position: absolute; left: 0; top: 0; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background-color 1s ease;"></div>
+                            <div id="sentiment-marker" style="position: absolute; top: 0; width: 4px; height: 100%; background: white; left: 50%; transform: translateX(-50%); box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>
+                        </div>
+                        <div class="gauge-labels" style="width: 100%; display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                            <span>Pessimismo</span>
+                            <span>Neutro</span>
+                            <span>Otimismo</span>
+                        </div>
+                        <h2 id="sentiment-status" style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #f8fafc;">Carregando...</h2>
+                        <p id="sentiment-score-text" style="margin-top: 0.5rem; color: #cbd5e1; font-size: 0.9rem;">Score: --</p>
+                        <p id="sentiment-period-info" style="margin-top: 0.25rem; color: #64748b; font-size: 0.75rem;"></p>
+                    </div>
+                    <div class="sentiment-news" style="flex: 2; min-width: 300px;">
+                        <h4 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Notícias Analisadas (VADER NLP)</h4>
+                        <div id="sentiment-news-list" style="max-height: 200px; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Notícias serão inseridas aqui via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Charts Section -->
             <section id="charts-section" class="charts-grid">
                 <!-- Price History & Predictions -->

@@ -731,6 +731,105 @@ class ModeloXGBoost:
         return self.modelo, self.metricas
 
 
+def analisar_sentimento_noticias(ticker_symbol="ITUB"):
+    """
+    Busca noticias recentes via yfinance e faz analise de sentimento com VADER.
+    Salva os resultados em itub4_sentimento.json
+    """
+    if not EM_STREAMLIT:
+        print("\n📰 8. ANALISANDO SENTIMENTO DE NOTÍCIAS (VADER NLP)...")
+        
+    resultado = {
+        "score_medio": 0.0,
+        "classificacao": "Neutro",
+        "noticias": [],
+        "atualizado_em": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
+    import json
+    try:
+        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+        analyzer = SentimentIntensityAnalyzer()
+    except ImportError:
+        if not EM_STREAMLIT:
+            print("   ⚠️ vaderSentiment não instalado. Pulando análise.")
+        resultado["erro"] = "Biblioteca vaderSentiment ausente."
+        with open('itub4_sentimento.json', 'w', encoding='utf-8') as f:
+            json.dump(resultado, f, ensure_ascii=False, indent=2)
+        return
+        
+    try:
+        ticker = yf.Ticker(ticker_symbol)
+        news = ticker.news
+        
+        if not news:
+            if not EM_STREAMLIT:
+                print("   ⚠️ Nenhuma notícia recente encontrada.")
+            with open('itub4_sentimento.json', 'w', encoding='utf-8') as f:
+                json.dump(resultado, f, ensure_ascii=False, indent=2)
+            return
+            
+        scores = []
+        for item in news[:10]: # Top 10 noticias
+            # Extrair titulo e resumo se existir
+            content = item.get('content', {})
+            title = content.get('title', '')
+            summary = content.get('summary', '')
+            
+            if not title and 'title' in item:
+                title = item.get('title', '')
+            if not summary and 'summary' in item:
+                summary = item.get('summary', '')
+                
+            texto_completo = f"{title}. {summary}"
+            if not texto_completo.strip() or texto_completo == ". ":
+                continue
+                
+            # Calcular polaridade
+            vs = analyzer.polarity_scores(texto_completo)
+            compound_score = vs['compound']
+            scores.append(compound_score)
+            
+            # Formatar data
+            pub_date = content.get('pubDate', '') or item.get('providerPublishTime', '')
+            if isinstance(pub_date, str) and 'T' in pub_date:
+                pub_date = pub_date.split('T')[0]
+                
+            resultado["noticias"].append({
+                "titulo": title,
+                "resumo": summary,
+                "score": compound_score,
+                "data": pub_date,
+                "link": content.get('canonicalUrl', {}).get('url', '') or item.get('link', '')
+            })
+            
+        if scores:
+            media = sum(scores) / len(scores)
+            resultado["score_medio"] = media
+            
+            if media >= 0.5:
+                resultado["classificacao"] = "Otimismo Extremo"
+            elif media >= 0.15:
+                resultado["classificacao"] = "Otimismo"
+            elif media > -0.15:
+                resultado["classificacao"] = "Neutro"
+            elif media > -0.5:
+                resultado["classificacao"] = "Pessimismo"
+            else:
+                resultado["classificacao"] = "Pessimismo Extremo"
+                
+            if not EM_STREAMLIT:
+                print(f"   ✅ {len(scores)} notícias analisadas.")
+                print(f"   🌡️ Score Médio: {media:.2f} ({resultado['classificacao']})")
+                
+    except Exception as e:
+        if not EM_STREAMLIT:
+            print(f"   ❌ Erro ao analisar notícias: {e}")
+        resultado["erro"] = str(e)
+        
+    with open('itub4_sentimento.json', 'w', encoding='utf-8') as f:
+        json.dump(resultado, f, ensure_ascii=False, indent=2)
+
 def prever_futuro(modelo, scaler, df, features, dias=10):
     """Gera previsões usando o melhor modelo"""
     if not EM_STREAMLIT:
@@ -1145,6 +1244,9 @@ def main():
         
         with open('itub4_metricas.json', 'w') as f:
             json.dump(metricas_serializable, f, indent=2)
+            
+        # 8. Analisar Sentimento de Noticias
+        analisar_sentimento_noticias("ITUB")
         
         print("\n✅ Dados processados e salvos!")
         print(f"   Melhor acurácia: {max(m['Acurácia'] for m in metricas.values())*100:.1f}%")

@@ -11,8 +11,197 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTrainingPanel();
     setupChartTimeframeControls();
     setupAnalystDiary();
+    setupSentimentFilters();
     initDateEnd();
 });
+
+/**
+ * Renderiza os dados de sentimento nos elementos HTML.
+ * Aceita o objeto de dados diretamente (do cache JSON ou da API).
+ */
+function renderSentimentData(data) {
+    const statusEl = document.getElementById('sentiment-status');
+    const scoreTextEl = document.getElementById('sentiment-score-text');
+    const periodInfoEl = document.getElementById('sentiment-period-info');
+    const fill = document.getElementById('sentiment-fill');
+    const newsList = document.getElementById('sentiment-news-list');
+
+    if (data.erro && !data.noticias?.length) {
+        statusEl.textContent = 'Indisponível';
+        statusEl.style.color = '#94a3b8';
+        scoreTextEl.textContent = data.erro;
+        if (periodInfoEl) periodInfoEl.textContent = '';
+        newsList.innerHTML = `<p style="color:#94a3b8">Nenhuma notícia analisada para este período.</p>`;
+        return;
+    }
+
+    const score = data.score_medio ?? 0;
+    const cls = data.classificacao ?? 'Neutro';
+    const percent = ((score + 1) / 2) * 100;
+
+    fill.style.width = percent + '%';
+    statusEl.textContent = cls;
+    scoreTextEl.textContent = `Score Médio: ${score.toFixed(2)} (${data.noticias?.length ?? 0} notícias)`;
+
+    if (score >= 0.15)       statusEl.style.color = '#10b981';
+    else if (score <= -0.15) statusEl.style.color = '#ef4444';
+    else                     statusEl.style.color = '#f59e0b';
+
+    // Exibir período analisado
+    if (periodInfoEl && data.periodo) {
+        const { inicio, fim } = data.periodo;
+        if (inicio || fim) {
+            const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : 'início';
+            periodInfoEl.textContent = `Período: ${fmtDate(inicio)} → ${fmtDate(fim)}`;
+        } else {
+            periodInfoEl.textContent = `Atualizado: ${data.atualizado_em ?? ''}`;
+        }
+    }
+
+    newsList.innerHTML = '';
+    if (data.noticias && data.noticias.length > 0) {
+        data.noticias.forEach(news => {
+            let badgeColor = '#f59e0b', badgeText = 'NEUTRO';
+            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = 'OTIMISMO'; }
+            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = 'PESSIMISMO'; }
+
+            const linkOpen  = news.link ? `<a href="${news.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">` : '';
+            const linkClose = news.link ? `</a>` : '';
+
+            newsList.innerHTML += `
+                <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;border-left:3px solid ${badgeColor};">
+                    ${linkOpen}
+                    <h5 style="margin:0 0 5px 0;font-size:0.9rem;color:#f8fafc;display:flex;justify-content:space-between;align-items:flex-start;">
+                        <span style="flex:1;margin-right:8px">${news.titulo}</span>
+                        <span style="background:${badgeColor}20;color:${badgeColor};padding:2px 6px;border-radius:4px;font-size:0.7rem;white-space:nowrap;flex-shrink:0">${badgeText}</span>
+                    </h5>
+                    <p style="margin:0 0 5px 0;font-size:0.8rem;color:#94a3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${news.resumo}</p>
+                    <small style="color:#64748b;font-size:0.7rem;">${news.data || 'Data desconhecida'}</small>
+                    ${linkClose}
+                </div>`;
+        });
+    } else {
+        newsList.innerHTML = `<p style="color:#94a3b8;font-size:0.9rem;">Nenhuma notícia encontrada para este período.</p>`;
+    }
+}
+
+/**
+ * Carrega sentimento do cache local (itub4_sentimento.json).
+ */
+async function loadSentimentData() {
+    try {
+        const response = await fetch('itub4_sentimento.json?t=' + Date.now());
+        if (!response.ok) throw new Error('JSON não encontrado');
+        const data = await response.json();
+        renderSentimentData(data);
+    } catch (e) {
+        console.warn('Sentimento (cache) não disponível:', e.message);
+        document.getElementById('sentiment-status').textContent = 'Sem dados';
+        document.getElementById('sentiment-score-text').textContent = 'Execute o treinamento para gerar análise.';
+    }
+}
+
+/**
+ * Busca sentimento via servidor para um período específico.
+ * @param {string|null} startDate - YYYY-MM-DD ou null
+ * @param {string|null} endDate   - YYYY-MM-DD ou null
+ */
+async function fetchSentimentByPeriod(startDate, endDate) {
+    const loadingEl = document.getElementById('sentiment-loading');
+    const statusEl  = document.getElementById('sentiment-status');
+
+    if (loadingEl) loadingEl.style.display = 'flex';
+    statusEl.textContent = 'Buscando...';
+
+    try {
+        const body = JSON.stringify({ start: startDate, end: endDate });
+        const response = await fetch('/sentiment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body
+        });
+
+        if (!response.ok) throw new Error(`Servidor retornou ${response.status}`);
+        const data = await response.json();
+        renderSentimentData(data);
+    } catch (e) {
+        console.error('Erro ao buscar sentimento:', e);
+        statusEl.textContent = 'Erro';
+        document.getElementById('sentiment-score-text').textContent = 'Falha na comunicação com o servidor.';
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+}
+
+/**
+ * Configura os botões de filtro de período do sentimento.
+ */
+function setupSentimentFilters() {
+    const periodBtns = document.querySelectorAll('[data-sentiment-period]');
+    const customDatesEl = document.getElementById('sentiment-custom-dates');
+    const sentimentStartEl = document.getElementById('sentiment-start');
+    const sentimentEndEl   = document.getElementById('sentiment-end');
+    const searchBtn = document.getElementById('btn-sentiment-search');
+
+    // Inicializar campos de data com valores padrão
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+    if (sentimentStartEl) sentimentStartEl.value = weekAgoStr;
+    if (sentimentEndEl)   sentimentEndEl.value   = todayStr;
+
+    // Carregar dados iniciais (período padrão = 1 semana)
+    const startInit = weekAgoStr;
+    const endInit   = todayStr;
+    fetchSentimentByPeriod(startInit, endInit);
+
+    periodBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            periodBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const period = btn.dataset.sentimentPeriod;
+
+            if (period === 'custom') {
+                if (customDatesEl) customDatesEl.style.display = 'flex';
+                // Não disparar busca ainda — aguardar o clique em "Buscar"
+                return;
+            }
+
+            if (customDatesEl) customDatesEl.style.display = 'none';
+
+            const end = new Date();
+            end.setHours(23, 59, 59);
+            let start = null;
+
+            if (period !== 'all') {
+                start = new Date();
+                const days = { '7d': 7, '30d': 30, '90d': 90, '180d': 180, '365d': 365 }[period];
+                if (days) start.setDate(start.getDate() - days);
+            }
+
+            const startStr = start ? start.toISOString().split('T')[0] : null;
+            const endStr   = end.toISOString().split('T')[0];
+
+            fetchSentimentByPeriod(startStr, endStr);
+        });
+    });
+
+    // Botão Buscar (período personalizado)
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            const start = sentimentStartEl?.value || null;
+            const end   = sentimentEndEl?.value   || null;
+            if (!start && !end) {
+                alert('Por favor, preencha ao menos uma data.');
+                return;
+            }
+            fetchSentimentByPeriod(start, end);
+        });
+    }
+}
 
 function initDateEnd() {
     const endInput = document.getElementById('train-end');
@@ -20,11 +209,11 @@ function initDateEnd() {
         const today = new Date();
         endInput.value = today.toISOString().split('T')[0];
     }
-    
-    // Heartbeat ping: avisa ao servidor a cada 5s que o navegador ainda está aberto
+
+    // Heartbeat ping: avisa ao servidor a cada 4s que o navegador ainda está aberto
     setInterval(() => {
         fetch('/ping').catch(() => {});
-    }, 5000);
+    }, 4000);
 }
 
 function formatDateLabel(value) {
@@ -182,6 +371,7 @@ function setupEventListeners() {
         
         Promise.all([
             loadMetrics(),
+            loadSentimentData(),
             loadChartData()
         ]).then(() => {
             setTimeout(() => icon.classList.remove('fa-spin'), 500);

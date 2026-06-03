@@ -160,7 +160,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
     def log_message(self, format, *args):
         # Suprimir logs de ping para não poluir o console
-        if '/ping' in (args[0] if args else ''):
+        if args and isinstance(args[0], str) and '/ping' in args[0]:
             return
         super().log_message(format, *args)
 

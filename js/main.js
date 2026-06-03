@@ -3,7 +3,72 @@
  * Focado em RSI e R² (XGBoost)
  */
 
+const crosshairState = {
+    charts: [],
+    activeLabel: null,
+    _sourceChart: null
+};
+
+const findIndexByLabel = (chart, label) => {
+    if (!chart || !chart.data || !Array.isArray(chart.data.labels)) return -1;
+    return chart.data.labels.indexOf(label);
+};
+
+function syncCrosshair(sourceChart, index) {
+    if (!sourceChart || !sourceChart.data || !Array.isArray(sourceChart.data.labels)) return;
+    const label = sourceChart.data.labels[index];
+    if (label === undefined || label === null) return;
+    crosshairState.activeLabel = label;
+    crosshairState._sourceChart = sourceChart;
+    crosshairState.charts.forEach(c => {
+        if (c !== sourceChart) c.update('none');
+    });
+}
+
+function clearCrosshair(sourceChart) {
+    if (crosshairState._sourceChart !== sourceChart) return;
+    crosshairState._sourceChart = null;
+    crosshairState.activeLabel = null;
+    crosshairState.charts.forEach(c => c.update('none'));
+}
+
+function attachCrosshairSync(chart) {
+    if (!chart || !chart.options) return;
+    chart.options.onHover = (e, activeElements) => {
+        if (activeElements && activeElements.length > 0) {
+            syncCrosshair(chart, activeElements[0].index);
+        }
+    };
+    chart.options.onLeave = () => {
+        clearCrosshair(chart);
+    };
+}
+
+const crosshairLinePlugin = {
+    id: 'crosshairLine',
+    afterDatasetsDraw(chart) {
+        if (!crosshairState.activeLabel) return;
+        const idx = findIndexByLabel(chart, crosshairState.activeLabel);
+        if (idx < 0) return;
+        const xScale = chart.scales && chart.scales.x;
+        if (!xScale) return;
+        const x = xScale.getPixelForValue(idx);
+        const { ctx, chartArea } = chart;
+        if (!ctx || !chartArea) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.5)';
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.restore();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+    Chart.register(crosshairLinePlugin);
     // Inicialização
     loadMetrics();
     loadChartData();
@@ -776,6 +841,16 @@ function drawPriceChart() {
                     pointHoverBorderWidth: 2,
                     showLine: false,
                     clip: false
+                },
+                {
+                    label: 'Preço Real (estendido)',
+                    data: [...Array(histData.length).fill(null), ...Array(10).fill(closePrices[closePrices.length-1])],
+                    borderColor: '#94a3b8',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
                 }
             ]
         },
@@ -814,12 +889,16 @@ function drawPriceChart() {
                 const canvas = e.native ? e.native.target : chart.canvas;
                 if (activeElements && activeElements.length > 0) {
                     const index = activeElements[0].index;
+                    syncCrosshair(chart, index);
                     if (index >= globalData.history.length - 1) {
                         canvas.style.cursor = 'pointer';
                         return;
                     }
                 }
                 canvas.style.cursor = 'default';
+            },
+            onLeave: () => {
+                clearCrosshair(priceChartInstance);
             },
             layout: {
                 padding: { top: 10, right: 16, bottom: 6, left: 8 }
@@ -861,11 +940,14 @@ function drawPriceChart() {
             },
             scales: {
                 x: {
+                    type: 'category',
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
                         autoSkip: true,
-                        maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                            maxTicksLimit: 12,
+                            maxRotation: 0,
+                            autoSkipPadding: 20,
+                            callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -875,6 +957,7 @@ function drawPriceChart() {
         }
     });
     window.priceChartInstance = priceChartInstance;
+    crosshairState.charts.push(priceChartInstance);
     setupPriceChartWheelZoom();
 }
 
@@ -1017,12 +1100,16 @@ function drawTechCharts() {
                 }
             },
             scales: {
-                x: { grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                                    x: {
+                        type: 'category',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' } },
                 y: { grid: { color: 'rgba(255, 255, 255, 0.05)' } }
             }
         }
     });
     window.realPriceChartInstance = realPriceChartInstance;
+    crosshairState.charts.push(realPriceChartInstance);
+    attachCrosshairSync(realPriceChartInstance);
 
     const maCtx = document.getElementById('ma20Chart').getContext('2d');
     if (ma20ChartInstance) ma20ChartInstance.destroy();
@@ -1060,12 +1147,16 @@ function drawTechCharts() {
                 }
             },
             scales: {
-                x: { grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                                    x: {
+                        type: 'category',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' } },
                 y: { grid: { color: 'rgba(255, 255, 255, 0.05)' } }
             }
         }
     });
     window.ma20ChartInstance = ma20ChartInstance;
+    crosshairState.charts.push(ma20ChartInstance);
+    attachCrosshairSync(ma20ChartInstance);
 
     const xgbCtx = document.getElementById('xgbForecastChart').getContext('2d');
     if (xgbForecastChartInstance) xgbForecastChartInstance.destroy();
@@ -1123,6 +1214,16 @@ function drawTechCharts() {
                         target: 'origin',
                         above: 'rgba(185, 28, 28, 0.08)'
                     }
+                },
+                {
+                    label: 'Preço Real (estendido)',
+                    data: [...Array(histData.length).fill(null), ...Array(10).fill(closePrices[closePrices.length-1])],
+                    borderColor: 'rgba(148, 163, 184, 0.9)',
+                    borderDash: [4, 4],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
                 }
             ]
         },
@@ -1164,11 +1265,14 @@ function drawTechCharts() {
             },
             scales: {
                 x: {
+                    type: 'category',
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
                         autoSkip: true,
-                        maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                            maxTicksLimit: 12,
+                            maxRotation: 0,
+                            autoSkipPadding: 20,
+                            callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -1178,6 +1282,8 @@ function drawTechCharts() {
         }
     });
     window.xgbForecastChartInstance = xgbForecastChartInstance;
+    crosshairState.charts.push(xgbForecastChartInstance);
+    attachCrosshairSync(xgbForecastChartInstance);
 
     const ptsCtx = document.getElementById('predictionPointsChart').getContext('2d');
     if (predictionPointsChartInstance) predictionPointsChartInstance.destroy();
@@ -1229,12 +1335,16 @@ function drawTechCharts() {
                 }
             },
             scales: {
-                x: { grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                                    x: {
+                        type: 'category',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' } },
                 y: { grid: { color: 'rgba(255, 255, 255, 0.05)' } }
             }
         }
     });
     window.predictionPointsChartInstance = predictionPointsChartInstance;
+    crosshairState.charts.push(predictionPointsChartInstance);
+    attachCrosshairSync(predictionPointsChartInstance);
 }
 
 function drawRsiChart() {
@@ -1305,11 +1415,14 @@ function drawRsiChart() {
             },
             scales: {
                 x: {
+                    type: 'category',
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
                         autoSkip: true,
-                        maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                            maxTicksLimit: 12,
+                            maxRotation: 0,
+                            autoSkipPadding: 20,
+                            callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -1334,6 +1447,8 @@ function drawRsiChart() {
         }
     });
     window.rsiChartInstance = rsiChartInstance;
+    crosshairState.charts.push(rsiChartInstance);
+    attachCrosshairSync(rsiChartInstance);
 }
 
 /**

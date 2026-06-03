@@ -1030,7 +1030,9 @@ def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end=None, ar
     if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
         print(f"\n📥 Baixando dados atualizados de {ticker} via yfinance e Dólar via BCB...")
     try:
-        dados = yf.download(ticker, start=start, end=end)
+        # yfinance end date is exclusive, so add 1 day to include the requested end date
+        end_date_yf = (datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+        dados = yf.download(ticker, start=start, end=end_date_yf)
         if not dados.empty:
             dados.reset_index(inplace=True)
             # Flatten multi-index columns if yfinance returns them

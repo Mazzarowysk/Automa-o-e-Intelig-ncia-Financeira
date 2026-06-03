@@ -65,6 +65,11 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
 - O servidor Python se fecha de modo gracioso e automático caso o usuário feche a janela/aba do navegador.
 - O Frontend (`main.js`) dispara requisições a cada 5 segundos. O backend monitora este pulso de vida. Se passar mais de 10 segundos sem receber um "ping", o Python deduz que a sessão do usuário foi finalizada e encerra o processo no terminal.
 
+#### 2.4 Funcionalidade de Zoom e Estado Persistente
+- O sistema conta com recursos avançados de interatividade nos gráficos, permitindo **Zoom através do Scroll do Mouse** (via `chartjs-plugin-zoom`).
+- O estado de zoom é persistente e sincronizado entre visões minimizadas e o painel expandido (`chart-expand-modal`), garantindo uma análise técnica fluida sem perder o contexto temporal.
+- Controles temporais modulares (1M a 5Y) interagem diretamente com a instância dos gráficos, mantendo consistência na UX.
+
 ### 3. Arquivos de Dados (CSV / JSON)
 - `itub4_historico.csv`: Histórico bruto importado.
 - `itub4_processado_final.csv`: Histórico processado contendo os novos indicadores técnicos.

@@ -19,19 +19,19 @@ def calcular_data_fim_padrao():
 PORT = 8000
 
 # Heartbeat: tempo da última confirmação de presença do browser
-last_ping_time = time.time() + 20  # 20s de carência inicial para carregar a página
+last_ping_time = time.time() + 15  # 15s de carência inicial para carregar a página
 
 SHUTDOWN_FLAG = threading.Event()
 
 def heartbeat_monitor():
-    """Monitora o ping do navegador. Se parar, encerra o servidor."""
+    """Monitora o ping do navegador. Se parar, encerra o servidor e sai completamente."""
     global last_ping_time
     while not SHUTDOWN_FLAG.is_set():
-        time.sleep(3)
+        time.sleep(2)
         elapsed = time.time() - last_ping_time
-        if elapsed > 5:
-            print(f"\n[INFO] Navegador fechado ou desconectado (sem ping há {elapsed:.0f}s). Encerrando servidor...")
-            os._exit(0)
+        if elapsed > 4:
+            print(f"\n[INFO] Navegador fechado ou desconectado (sem ping há {elapsed:.0f}s). Encerrando...")
+            os._exit(0)  # Encerramento forçado e imediato — fecha a janela do CMD
 
 threading.Thread(target=heartbeat_monitor, daemon=True).start()
 

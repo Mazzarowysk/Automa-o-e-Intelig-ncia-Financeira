@@ -38,10 +38,20 @@ function renderSentimentData(data) {
     const score = data.score_medio ?? 0;
     const cls = data.classificacao ?? 'Neutro';
     const percent = ((score + 1) / 2) * 100;
+    const newsCount = data.noticias?.length ?? 0;
+
+    // Atualizar contador
+    const countEl = document.getElementById('sentiment-news-count');
+    if (countEl) countEl.textContent = newsCount;
 
     fill.style.width = percent + '%';
-    statusEl.textContent = cls;
-    scoreTextEl.textContent = `Score Médio: ${score.toFixed(2)} (${data.noticias?.length ?? 0} notícias)`;
+    
+    let mainEmoji = '😐';
+    if (score >= 0.15) mainEmoji = '📈';
+    else if (score <= -0.15) mainEmoji = '📉';
+    
+    statusEl.textContent = `${mainEmoji} ${cls}`;
+    scoreTextEl.textContent = `Score Médio: ${score.toFixed(2)}`;
 
     if (score >= 0.15)       statusEl.style.color = '#10b981';
     else if (score <= -0.15) statusEl.style.color = '#ef4444';
@@ -61,9 +71,9 @@ function renderSentimentData(data) {
     newsList.innerHTML = '';
     if (data.noticias && data.noticias.length > 0) {
         data.noticias.forEach(news => {
-            let badgeColor = '#f59e0b', badgeText = 'NEUTRO';
-            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = 'OTIMISMO'; }
-            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = 'PESSIMISMO'; }
+            let badgeColor = '#f59e0b', badgeText = '😐 NEUTRO';
+            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = '📈 OTIMISMO'; }
+            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = '📉 PESSIMISMO'; }
 
             const linkOpen  = news.link ? `<a href="${news.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">` : '';
             const linkClose = news.link ? `</a>` : '';

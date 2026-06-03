@@ -191,16 +191,19 @@
                             <div id="sentiment-marker" style="position: absolute; top: 0; width: 4px; height: 100%; background: white; left: 50%; transform: translateX(-50%); box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>
                         </div>
                         <div class="gauge-labels" style="width: 100%; display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
-                            <span>Pessimismo</span>
-                            <span>Neutro</span>
-                            <span>Otimismo</span>
+                            <span>📉 Pessimismo</span>
+                            <span>😐 Neutro</span>
+                            <span>📈 Otimismo</span>
                         </div>
                         <h2 id="sentiment-status" style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #f8fafc;">Carregando...</h2>
                         <p id="sentiment-score-text" style="margin-top: 0.5rem; color: #cbd5e1; font-size: 0.9rem;">Score: --</p>
                         <p id="sentiment-period-info" style="margin-top: 0.25rem; color: #64748b; font-size: 0.75rem;"></p>
                     </div>
                     <div class="sentiment-news" style="flex: 2; min-width: 300px;">
-                        <h4 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Notícias Analisadas (VADER NLP)</h4>
+                        <h4 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                            Notícias Analisadas (VADER NLP) 
+                            <span id="sentiment-news-count" style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; margin-left: 10px; color: #cbd5e1;">0</span>
+                        </h4>
                         <div id="sentiment-news-list" style="max-height: 200px; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 0.8rem;">
                             <!-- Notícias serão inseridas aqui via JS -->
                         </div>

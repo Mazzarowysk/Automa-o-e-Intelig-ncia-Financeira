@@ -100,6 +100,7 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
    - O servidor intercepta a falha do *heartbeat* e finaliza os processos, limpando a memória.
 
 ### 5. Sugestões de Melhoria Futuras
+- Integração com API de Notícias Profissional (ex: NewsAPI ou Bloomberg) para buscar o histórico profundo de matérias, viabilizando que o modelo de predição seja treinado não apenas em números (preço/volume), mas também usando a matriz de Sentimento de longo prazo.
 - Otimização Bayesiana de Hiperparâmetros para refino do R².
 - Integração em tempo real com APIs de WebSocket (B3) para predições de intraday.
 

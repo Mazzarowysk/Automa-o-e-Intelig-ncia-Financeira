@@ -1010,10 +1010,9 @@ def baixar_dados_dolar(start="1995-01-01", end=None):
             "dataFinal": dt_end
         }
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'application/json'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, params=params, headers=headers, verify=False)
+        response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         
         df = pd.DataFrame(response.json())

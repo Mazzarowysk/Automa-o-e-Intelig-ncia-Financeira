@@ -203,12 +203,8 @@ function setupEventListeners() {
         });
     }
 
-    // Lógica para botões de expandir gráficos
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-expand-chart');
-        if (!btn) return;
-        
-        const chartId = btn.getAttribute('data-chart');
+    // Function to expand a specific chart
+    function expandChart(chartId) {
         let sourceChart = null;
         let title = '';
 
@@ -218,9 +214,17 @@ function setupEventListeners() {
         else if (chartId === 'predictionPointsChart') { sourceChart = predictionPointsChartInstance; title = 'Pontos de Previsão'; }
         
         if (sourceChart && chartExpandModal) {
+            window.currentExpandedChartId = chartId;
             document.getElementById('expanded-chart-title').innerText = title;
             chartExpandModal.classList.add('active');
             
+            // Sync active period button in modal
+            const modalControls = document.querySelectorAll('#modal-timeframe-controls .chart-toggle-btn');
+            modalControls.forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.dataset.period === activeTechChartTimeFrame) btn.classList.add('active');
+            });
+
             const ctx = document.getElementById('expandedChart').getContext('2d');
             if (expandedChartInstance) expandedChartInstance.destroy();
             
@@ -229,13 +233,20 @@ function setupEventListeners() {
             const sourceOptions = JSON.parse(JSON.stringify(sourceChart.options));
             
             // Ajustar opções para visualização grande
-            sourceOptions.plugins.legend.labels.font.size = 14;
-            sourceOptions.plugins.tooltip.titleFont.size = 16;
-            sourceOptions.plugins.tooltip.bodyFont.size = 14;
-            sourceOptions.scales.x.ticks.font = {size: 14};
-            sourceOptions.scales.y.ticks.font = {size: 14};
+            if (sourceOptions.plugins && sourceOptions.plugins.legend && sourceOptions.plugins.legend.labels) {
+                sourceOptions.plugins.legend.labels.font.size = 14;
+            }
+            if (sourceOptions.plugins && sourceOptions.plugins.tooltip) {
+                sourceOptions.plugins.tooltip.titleFont = sourceOptions.plugins.tooltip.titleFont || {};
+                sourceOptions.plugins.tooltip.bodyFont = sourceOptions.plugins.tooltip.bodyFont || {};
+                sourceOptions.plugins.tooltip.titleFont.size = 16;
+                sourceOptions.plugins.tooltip.bodyFont.size = 14;
+            }
+            if (sourceOptions.scales && sourceOptions.scales.x) sourceOptions.scales.x.ticks.font = {size: 14};
+            if (sourceOptions.scales && sourceOptions.scales.y) sourceOptions.scales.y.ticks.font = {size: 14};
             
             // Ativar zoom no expanded chart
+            sourceOptions.plugins = sourceOptions.plugins || {};
             sourceOptions.plugins.zoom = {
                 pan: { enabled: true, mode: 'x' },
                 zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
@@ -251,7 +262,50 @@ function setupEventListeners() {
                 plugins: pluginsToCopy
             });
         }
+    }
+
+    // Lógica para botões de expandir gráficos e clique nos gráficos
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-expand-chart');
+        if (btn) {
+            expandChart(btn.getAttribute('data-chart'));
+            return;
+        }
+
+        const canvas = e.target.closest('canvas');
+        if (canvas && ['realPriceChart', 'ma20Chart', 'xgbForecastChart', 'predictionPointsChart'].includes(canvas.id)) {
+            expandChart(canvas.id);
+        }
     });
+
+    // Handle timeframe changes in modal
+    const modalTechControls = document.querySelectorAll('#modal-timeframe-controls .chart-toggle-btn[data-period]');
+    if (modalTechControls && modalTechControls.length > 0) {
+        modalTechControls.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modalTechControls.forEach(item => item.classList.remove('active'));
+                btn.classList.add('active');
+                
+                activeTechChartTimeFrame = btn.dataset.period || 'all';
+                
+                // Sync main page buttons
+                const techControls = document.querySelectorAll('#tech-timeframe-controls .chart-toggle-btn[data-period]');
+                techControls.forEach(item => {
+                    item.classList.remove('active');
+                    if(item.dataset.period === activeTechChartTimeFrame) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                drawTechCharts(); // redraw small charts with new timeframe
+                
+                // Refresh modal chart
+                if (window.currentExpandedChartId) {
+                    expandChart(window.currentExpandedChartId);
+                }
+            });
+        });
+    }
 
     // Lógica de Desligamento Inteligente do Servidor
     const btnShutdown = document.getElementById('btn-shutdown');

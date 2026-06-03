@@ -44,11 +44,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
             self.end_headers()
             self.wfile.write(b'{"status": "ok"}')
             return
 
-        # Rota especial para desligar o servidor via requisição do navegador
+        # Rota especial para desligar o servidor via requisição do navegador (fallback GET)
         if self.path == '/shutdown':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -58,7 +59,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             print("\n[INFO] Sinal de desligamento recebido do Dashboard.")
             print("[INFO] Fechando o servidor...")
             
-            # Executa o desligamento em uma thread paralela para que a requisição possa finalizar e o navegador não fique pendado
+            # Executa o desligamento em uma thread paralela
             def kill_me():
                 time.sleep(1)
                 os._exit(0)
@@ -76,6 +77,22 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
+        # Rota principal para desligamento limpo pelo navegador usando sendBeacon()
+        if self.path == '/shutdown':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(b'{"status": "shutdown"}')
+            print("\n[INFO] Sinal de desligamento (POST) recebido do Dashboard.")
+            print("[INFO] Fechando o servidor...")
+            
+            def kill_me():
+                time.sleep(1)
+                os._exit(0)
+            threading.Thread(target=kill_me, daemon=True).start()
+            return
+
         if self.path == '/retrain':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)

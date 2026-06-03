@@ -234,17 +234,17 @@ function setupEventListeners() {
 
     // Function to expand a specific chart
     function expandChart(chartId) {
-        let sourceChart = null;
-        let title = '';
+        if (!realPriceChartInstance || !ma20ChartInstance || !xgbForecastChartInstance || !predictionPointsChartInstance) return;
 
-        if (chartId === 'realPriceChart') { sourceChart = realPriceChartInstance; title = 'Preço Real (ITUB4)'; }
-        else if (chartId === 'ma20Chart') { sourceChart = ma20ChartInstance; title = 'Média Móvel (20d)'; }
-        else if (chartId === 'xgbForecastChart') { sourceChart = xgbForecastChartInstance; title = 'Previsão IA (XGBoost)'; }
-        else if (chartId === 'predictionPointsChart') { sourceChart = predictionPointsChartInstance; title = 'Pontos de Previsão'; }
+        let title = '';
+        if (chartId === 'realPriceChart') { title = 'Preço Real (ITUB4)'; }
+        else if (chartId === 'ma20Chart') { title = 'Média Móvel (20d)'; }
+        else if (chartId === 'xgbForecastChart') { title = 'Previsão IA (XGBoost)'; }
+        else if (chartId === 'predictionPointsChart') { title = 'Pontos de Previsão'; }
         
-        if (sourceChart && chartExpandModal) {
+        if (chartExpandModal) {
             window.currentExpandedChartId = chartId;
-            document.getElementById('expanded-chart-title').innerText = title;
+            document.getElementById('expanded-chart-title').innerText = "Análise Técnica - " + title;
             chartExpandModal.classList.add('active');
             
             // Sync active period button in modal
@@ -257,9 +257,33 @@ function setupEventListeners() {
             const ctx = document.getElementById('expandedChart').getContext('2d');
             if (expandedChartInstance) expandedChartInstance.destroy();
             
-            // Deep clone data and options from source chart
-            const sourceData = JSON.parse(JSON.stringify(sourceChart.data));
-            const sourceOptions = JSON.parse(JSON.stringify(sourceChart.options));
+            // Base labels from XGBoost chart (includes historical + future)
+            const combinedLabels = JSON.parse(JSON.stringify(xgbForecastChartInstance.data.labels));
+            
+            // Deep clone all datasets
+            const realPriceDataset = JSON.parse(JSON.stringify(realPriceChartInstance.data.datasets[0]));
+            const ma20Dataset = JSON.parse(JSON.stringify(ma20ChartInstance.data.datasets[0]));
+            const xgbDatasets = JSON.parse(JSON.stringify(xgbForecastChartInstance.data.datasets));
+            const predictionDataset = JSON.parse(JSON.stringify(predictionPointsChartInstance.data.datasets[0]));
+            
+            // Hide datasets that were not clicked
+            if (chartId !== 'realPriceChart') realPriceDataset.hidden = true;
+            if (chartId !== 'ma20Chart') ma20Dataset.hidden = true;
+            if (chartId !== 'xgbForecastChart') xgbDatasets.forEach(ds => ds.hidden = true);
+            if (chartId !== 'predictionPointsChart') predictionDataset.hidden = true;
+
+            const allDatasets = [realPriceDataset, ma20Dataset, ...xgbDatasets, predictionDataset];
+
+            // Use XGBoost options as base
+            const sourceOptions = JSON.parse(JSON.stringify(xgbForecastChartInstance.options));
+            
+            // Restore callbacks lost during JSON stringify
+            if (sourceOptions.plugins && sourceOptions.plugins.tooltip && xgbForecastChartInstance.options.plugins.tooltip.callbacks) {
+                sourceOptions.plugins.tooltip.callbacks = xgbForecastChartInstance.options.plugins.tooltip.callbacks;
+            }
+            if (sourceOptions.scales && sourceOptions.scales.x && sourceOptions.scales.x.ticks && xgbForecastChartInstance.options.scales.x.ticks.callback) {
+                sourceOptions.scales.x.ticks.callback = xgbForecastChartInstance.options.scales.x.ticks.callback;
+            }
             
             // Ajustar opções para visualização grande
             if (sourceOptions.plugins && sourceOptions.plugins.legend && sourceOptions.plugins.legend.labels) {
@@ -281,12 +305,14 @@ function setupEventListeners() {
                 zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
             };
 
-            // Remover plugins customizados problemáticos do clone (futureAreaTech etc) se necessário
-            const pluginsToCopy = [];
+            const pluginsToCopy = [...xgbForecastChartInstance.config.plugins];
 
             expandedChartInstance = new Chart(ctx, {
-                type: sourceChart.config.type,
-                data: sourceData,
+                type: 'line',
+                data: {
+                    labels: combinedLabels,
+                    datasets: allDatasets
+                },
                 options: sourceOptions,
                 plugins: pluginsToCopy
             });

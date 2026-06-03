@@ -15,5 +15,5 @@ echo Iniciando servidor inteligente na porta 8000...
 echo O navegador abrira automaticamente.
 echo.
 
-:: Inicia o servidor personalizado em nova janela, mantendo o terminal aberto
-start "ITUB4 Dashboard" cmd /k python servidor.py
+:: Inicia o servidor e a janela será fechada automaticamente quando o Python encerrar
+python servidor.py

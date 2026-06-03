@@ -72,15 +72,16 @@
                         <button class="chart-toggle-btn" data-train-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
                     </div>
                 </div>
-                <div class="training-panel-body">
-                    <div class="training-field">
-                        <label for="train-start">Data Início</label>
+                <div class="sentiment-custom-dates" style="display: flex; margin-bottom: 0;">
+                    <div class="sentiment-date-field">
+                        <label for="train-start">De:</label>
                         <input type="date" id="train-start" value="2000-12-21" disabled>
                     </div>
-                    <div class="training-field">
-                        <label for="train-end">Data Fim <span id="pregoes-count" class="pregoes-count"></span></label>
+                    <div class="sentiment-date-field">
+                        <label for="train-end">Até:</label>
                         <input type="date" id="train-end" disabled>
                     </div>
+                    <span id="pregoes-count" class="pregoes-count" style="margin-left: 0.5rem; display: none;"></span>
                     <button class="btn-retrain" id="btn-retrain">
                         <i class="fa-solid fa-brain"></i> Recalcular e Treinar Modelo
                     </button>

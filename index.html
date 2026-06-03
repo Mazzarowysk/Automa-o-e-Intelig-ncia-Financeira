@@ -149,7 +149,7 @@
                 <!-- Price History & Predictions -->
                 <div id="chart-price" class="chart-container large-chart glass-panel">
                     <div class="chart-header">
-                        <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias)</h3>
+                        <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias) <i class="fa-regular fa-circle-question tooltip-icon" title="Gráfico principal comparando o histórico real de preços da ITUB4 com as projeções futuras feitas pela Inteligência Artificial do XGBoost para os próximos 10 pregões."></i></h3>
                         <div class="chart-toggle-group" id="timeframe-controls">
                             <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
                             <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
@@ -167,8 +167,17 @@
 
                 <!-- RSI Chart -->
                 <div id="chart-rsi" class="chart-container glass-panel">
-                    <div class="chart-header">
-                        <h3><i class="fa-solid fa-wave-square"></i> Oscilador RSI (14 Períodos)</h3>
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <h3><i class="fa-solid fa-wave-square"></i> Oscilador RSI (14 Períodos) <i class="fa-regular fa-circle-question tooltip-icon" title="O Índice de Força Relativa (RSI) mede a velocidade das mudanças de preço. Valores acima de 70 indicam que a ação subiu muito e pode estar 'sobrecomprada', enquanto abaixo de 30 indica que caiu muito e pode estar 'sobrevendida'."></i></h3>
+                        <div class="chart-toggle-group" id="rsi-timeframe-controls">
+                            <button class="chart-toggle-btn active" data-period="all">Todo Histórico</button>
+                            <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
+                            <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
+                            <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
+                            <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
+                            <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                            <button class="chart-toggle-btn" id="rsi-reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                        </div>
                     </div>
                     <div class="canvas-wrapper">
                         <canvas id="rsiChart"></canvas>
@@ -177,7 +186,7 @@
 
                 <!-- Analyst Tools (visible in Tech tab) -->
                 <div id="analyst-tools" class="analyst-tools-section" style="display: none;">
-                    <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Ferramentas do Analista</h3>
+                    <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Ferramentas do Analista <i class="fa-regular fa-circle-question tooltip-icon" title="Conjunto de gráficos técnicos detalhados que recompõem o comportamento da ação e o raciocínio da IA, ideal para aprofundar as análises direcionais."></i></h3>
                     
                     <div class="chart-toggle-group" id="tech-timeframe-controls" style="margin-bottom: 1.5rem;">
                         <button class="chart-toggle-btn" data-period="all">Todo Histórico</button>

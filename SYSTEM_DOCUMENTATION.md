@@ -4,202 +4,91 @@
 ### 1. Descrição do Algoritmo
 
 #### Objetivo
-Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utilizando dados históricos e indicadores técnicos, fornecendo uma interface interativa para visualização das previsões.
+Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utilizando dados históricos e indicadores técnicos, fornecendo uma interface interativa e avançada para visualização das previsões.
 
 #### Passos do Algoritmo
 
 1. **Carregamento e Limpeza de Dados**
    - Carrega o dataset histórico `itub4_historico.csv` contendo preços de abertura, alta, baixa, fechamento e volume.
-   - Remove linhas com valores faltantes.
-   - Garante que os dados estejam ordenados cronologicamente.
+   - Remove linhas com valores faltantes e garante a cronologia correta dos dados.
 
 2. **Criação de Características (Features)**
    - Gera mais de 50 indicadores técnicos incluindo:
      - Médias Móveis Simples (SMA) e Exponenciais (EMA)
      - Índice de Força Relativa (RSI)
-     - Bandas de Bollinger
-     - Oscilador Estocástico
+     - Bandas de Bollinger e Oscilador Estocástico
      - MACD (Moving Average Convergence Divergence)
      - Indicadores de volume (OBV, VWAP)
-     - Diferenças percentuais e lagged features
-     - Características de volatilidade e momentum
+     - Diferenças percentuais, lagged features e momentum.
 
 3. **Padronização**
    - Aplica Z-score (StandardScaler) para normalizar todas as features, garantindo média 0 e desvio padrão 1.
 
 4. **Seleção de Características**
-   - Utiliza duas técnicas combinadas:
-     - Correlação com a variável alvo (próximo retorno)
-     - Informação Mútua (mutual_info_regression) para capturar relações não lineares
+   - Utiliza técnicas combinadas: Correlação com a variável alvo e Informação Mútua (mutual_info_regression) para capturar relações não lineares.
    - Seleciona as características mais relevantes para reduzir ruído e overfitting.
 
 5. **Modelagem com XGBoost**
-   - Treina três variantes do modelo XGBoost Regressor:
-     - **XGBoost Rápido**: configuração básica para iterabilidade rápida
-     - **XGBoost Base**: parâmetros balanceados de desempenho
-     - **XGBoost Otimizado**: hiperparâmetros ajustados via validação cruzada
+   - Treina três variantes do modelo XGBoost Regressor (Rápido, Base, Otimizado).
    - Utiliza `TimeSeriesSplit` para validação cruzada temporal, evitando vazamento de dados futuros.
 
 6. **Avaliação de Desempenho**
-   - Calcula métricas para cada modelo:
-     - Erro Absoluto Médio (MAE)
-     - Coeficiente de Determinação (R²)
-     - Acurácia de Direção (percentual de previsões corretas de alta/baixa)
-   - Métricas armazenadas em `itub4_metricas.json`
+   - Calcula métricas (MAE, RMSE, R² e Acurácia de Direção).
+   - Armazena resultados em `itub4_metricas.json`.
 
 7. **Geração de Previsões Futuras**
-   - Utiliza o melhor modelo (geralmente o XGBoost Otimizado) para prever os próximos 10 dias de preços.
-   - Gera o arquivo `itub4_previsoes_finais.csv` contendo datas e valores previstos.
+   - Utiliza o melhor modelo treinado para prever os próximos 10 dias úteis de preços (`itub4_previsoes_finais.csv`).
 
-8. **Dashboard Interativo (Streamlit)**
-   - Interface web para visualização:
-     - Gráficos de preços históricos e previstos
-     - Métricas de desempenho dos modelos
-     - Importância das características
-     - Opção para retreinar o modelo via endpoint `/retrain`
+8. **Dashboard Interativo (HTML/JS/CSS)**
+   - Sistema de visualização próprio, leve e interativo, focado na experiência do usuário (UX).
+   - Gráficos integrados utilizando **Chart.js** (Preços, Previsões, RSI, Médias Móveis).
+   - Tooltips (dicas) instrucionais, painel de "Ferramentas do Analista" e métricas KPIs detalhadas.
+   - Funcionalidade avançada de **Zoom com Scroll do Mouse** sincronizada e persistente entre gráficos.
 
 #### Tecnologias Utilizadas
-- Linguagem: Python 3.12.10
-- Bibliotecas principais: pandas, numpy, scikit-learn, xgboost, streamlit
-- Fonte de dados externos: Banco Central do Brasil (taxa de câmbio USD/BRL via API)
-- Servidor HTTP personalizado para gerenciamento de estado
+- **Backend/IA**: Python 3.12, pandas, numpy, scikit-learn, xgboost.
+- **Servidor HTTP**: Servidor local Python (`http.server`) com mecanismo de **Heartbeat** para auto-shutdown.
+- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript, Chart.js, PapaParse (leitura de CSV local).
 
-### 2. Especificações dos Bancos de Dados CSV
+### 2. Componentes do Sistema
 
-#### 2.1 itub4_historico.csv
-- **Propósito**: Dados históricos brutos das ações ITUB4
-- **Fonte**: Provavelmente extraído de API de mercado financeiro (ex: Yahoo Finance, Alpha Vantage)
-- **Período**: Múltiplos anos (aproximadamente 602.000 registros)
-- **Colunas**:
-  - `Date`: Data no formato YYYY-MM-DD
-  - `Open`: Preço de abertura
-  - `High`: Preço mais alto do dia
-  - `Low`: Preço mais baixo do dia
-  - `Close`: Preço de fechamento (variável alvo principal)
-  - `Volume`: Volume negociado
-- **Tamanho**: Aproximadamente 25 MB
-- **Uso**: Entrada principal para o pipeline de processamento
+#### 2.1 Backend e Modelagem
+- `itub4_analise_completa.py`: Orquestra todo o pipeline de machine learning e processamento de dados. Pode receber parâmetros de datas customizadas para retreinamento dinâmico.
+- `servidor.py`: Servidor HTTP encarregado de servir o dashboard. Contém rotas para retreinamento (`/retrain`), verificação de conexão (`/ping`) e desligamento seguro (`/shutdown`).
 
-#### 2.2 itub4_processado_final.csv
-- **Propósito**: Dataset totalmente processado com todas as features engineered
-- **Gerado por**: `itub4_analise_completa.py` durante a fase de preparação de dados
-- **Colunas**:
-  - Todas as colunas de `itub4_historico.csv`
-  - + >50 colunas de indicadores técnicos (ex: `SMA_10`, `EMA_20`, `RSI`, `MACD`, `BB_upper`, `BB_lower`, `OBV`, etc.)
-  - + Colunas de características derivadas (lagged returns, volatilidade rolling, etc.)
-  - + Coluna target (geralmente `Next_Return` ou similar para previsão de retorno)
-- **Tamanho**: Aproximadamente 16.7 MB
-- **Uso**: Entrada para os modelos de machine learning após seleção de características
+#### 2.2 Estrutura de Frontend (Dashboard)
+- `index.html`: Interface com múltiplas abas (Dashboard Principal, Indicadores, Análise Técnica, Previsão IA).
+- `css/style.css`: Estilização responsiva com design moderno "glassmorphism", ícones Font Awesome e modo noturno padrão.
+- `js/main.js`: Lógica de renderização de gráficos, aplicação de zoom inteligente (Chart.getChart), filtros de janelas de tempo (1M, 6M, 1Y, Todo Histórico) e o mecanismo de **Heartbeat** que envia pings ao Python para gerenciar o ciclo de vida do servidor.
 
-#### 2.3 itub4_previsoes_finais.csv
-- **Propósito**: Armazena as previsões futuras geradas pelo modelo
-- **Gerado por**: `itub4_analise_completa.py` na seção de forecast
-- **Colunas**:
-  - `Date`: Data da previsão (datas futuras)
-  - `Predicted_Close`: Preço de fechamento previsto
-  - Possivelmente colunas de intervalo de confiança (se implementado)
-- **Uso**: Consumo pelo dashboard Streamlit para exibição de previsões
+#### 2.3 Mecanismo de Heartbeat (Inovação Técnica)
+- O servidor Python se fecha de modo gracioso e automático caso o usuário feche a janela/aba do navegador.
+- O Frontend (`main.js`) dispara requisições a cada 5 segundos. O backend monitora este pulso de vida. Se passar mais de 10 segundos sem receber um "ping", o Python deduz que a sessão do usuário foi finalizada e encerra o processo no terminal.
 
-#### 2.4 itub4_metricas.json
-- **Propósito**: Armazena métricas de avaliação dos três modelos XGBoost
-- **Gerado por**: `itub4_analise_completa.py` após validação cruzada
-- **Estrutura JSON**:
-  ```json
-  {
-    "XGBoost Rápido": {
-      "MAE": 1.2159380035538387,
-      "R2": -0.09535241195639821,
-      "Acurácia": 0.48
-    },
-    "XGBoost Base": {
-      "MAE": 1.1656491505190065,
-      "R2": -0.030237978028945456,
-      "Acurácia": 0.47836734693877553
-    },
-    "XGBoost Otimizado": {
-      "MAE": 1.1535215452789025,
-      "R2": -0.0135907720801689,
-      "Acurácia": 0.4881632653061225
-    }
-  }
-  ```
-- **Interpretação**:
-  - MAE menor indica melhor desempenho (erro médio absoluto em unidades de preço)
-  - R² próximo de 1 indica melhor explicação da variância (valores negativos indicam pior que média)
-  - Acurácia de Direção: percentual de vezes que o modelo acertou a direção (subida/queda) do preço
-
-### 3. Componentes do Sistema
-
-#### 3.1 Scripts Principais
-- `itub4_analise_completa.py`: Orquestra todo o pipeline de machine learning
-- `extract_docx.py`: Utilitário para extrair texto de arquivos .docx (usado para obter esta documentação)
-- `fetch_usd.py`: Busca taxa de câmbio USD/BRL do Banco Central do Brasil para potencial uso como feature externa
-- `servidor.py`: Servidor HTTP personalizado que fornece endpoints `/shutdown` e `/retrain` e serve arquivos estáticos do dashboard
-
-#### 3.2 Arquivos de Configuração e Execução
-- `start_dashboard.bat`: Arquivo em lote para inicializar o dashboard Streamlit
-- `Python_Financial_Intelligence (1).pptx`: Apresentação existente que pode ser usada como referência visual
-
-#### 3.3 Estrutura de Frontend (Dashboard)
-- `index.html`: Página principal do dashboard
-- `css/`: Folhas de estilo para customização visual
-- `js/`: Scripts JavaScript para interatividade e comunicação com o backend
+### 3. Arquivos de Dados (CSV / JSON)
+- `itub4_historico.csv`: Histórico bruto importado.
+- `itub4_processado_final.csv`: Histórico processado contendo os novos indicadores técnicos.
+- `itub4_previsoes_finais.csv`: Projeções de 10 dias futuros originadas pelo XGBoost.
+- `itub4_metricas.json`: Base de dados dos resultados de validação cruzada do modelo.
 
 ### 4. Fluxo de Operação
 
-1. **Execução Inicial**
-   - O usuário executa `itub4_analise_completa.py` (ou via `start_dashboard.bat`)
-   - O script carrega `itub4_historico.csv`
-   - Gera `itub4_processado_final.csv` com features
-   - Treina e avalia os três modelos XGBoost
-   - Salva métricas em `itub4_metricas.json`
-   - Gera previsões futuras em `itub4_previsoes_finais.csv`
-   - Inicia o servidor Streamlit para visualização
+1. **Início e Treinamento**
+   - O usuário executa o `start_dashboard.bat`.
+   - O Python gera e avalia as projeções e depois ergue o `servidor.py`.
 
-2. **Modo Servidor**
-   - O `servidor.py` roda na porta 8000
-   - Fornece:
-     - Endpoint `/shutdown`: para encerrar o servidor graciosamente
-     - Endpoint `/retrain`: para disparar um novo ciclo de treinamento (útil para atualização com novos dados)
-   - Serve os arquivos estáticos do dashboard (HTML, CSS, JS)
+2. **Interação com a Interface**
+   - O usuário acessa o dashboard. O Javascript coleta os CSVs via PapaParse e pinta os canvas do Chart.js.
+   - O usuário pode aplicar zoom, alterar períodos, analisar osciladores isoladamente (ex: RSI em 1Y) e ler a análise técnica no diário.
 
-3. **Interatividade do Usuário**
-   - Através do dashboard, o usuário pode:
-     - Visualizar preços históricos vs previstos
-     - Ver métricas de desempenho dos modelos
-     - Analisar importância das features
-     - Acionar retreinamento sob demanda
+3. **Encerramento**
+   - O usuário finaliza sua análise e simplesmente fecha o Chrome.
+   - O servidor intercepta a falha do *heartbeat* e finaliza os processos, limpando a memória.
 
-### 5. Considerações para Reprodução
-
-#### Requisitos de Sistema
-- Python 3.12 ou superior
-- Bibliotecas: pandas, numpy, scikit-learn, xgboost, streamlit, requests
-- Conexão com internet para busca de taxa de câmbio (opcional, se usada como feature)
-
-#### Passos para Reprodução
-1. Garantir que `itub4_historico.csv` esteja presente na mesma directory
-2. Executar: `python itub4_analise_completa.py`
-3. Aguardar conclusão do processamento (pode levar vários minutos dependendo do volume de dados)
-4. Acessar o dashboard via navegador em `http://localhost:8000` (se iniciado pelo script) ou conforme indicado no terminal
-
-### 6. Limitações e Próximos Passos
-
-#### Limitações Identificadas
-- Dependência da qualidade e completude dos dados históricos
-- Overfitting potencial apesar das técnicas de regularização e validação temporal
-- As métricas de R² negativas sugerem que os modelos têm dificuldade em explicar a variância absoluta dos preços (comum em séries temporais financeiras)
-- A acurácia de direção ~48% indica desempenho pouco melhor que aleatório para esta métrica específica
-
-#### Sugestões de Melhoria
-- Incorporar dados fundamentais (balanços, demonstrações de resultados)
-- Experimentar outras arquiteturas (LSTM, Prophet, modelos de ensemble)
-- Implementar caminhada forward (walk-forward) mais robusta
-- Adicionar características de sentimento de notícias e redes sociais
-- Otimização bayesiana de hiperparâmetros
-
-### 7. Conclusão
-Este sistema demonstra uma abordagem prática para aplicação de machine learning em previsão de ações, combinando engenharia de características financeiras com modelos de boosting e uma interface acessível para stakeholders. Apesar dos desafios inerentes à previsão de mercados financeiros, o framework fornece uma base sólida para experimentação e aprimoramento contínuo.
+### 5. Sugestões de Melhoria Futuras
+- Otimização Bayesiana de Hiperparâmetros para refino do R².
+- Inserção de Análise de Sentimento baseada em notícias ou publicações no X/Twitter.
+- Integração em tempo real com APIs de WebSocket (B3) para predições de intraday.
 
 ---
-*Documentação gerada em: $(Get-Date -Format yyyy-MM-dd)*
+*Documentação atualizada de acordo com a arquitetura final Frontend + Heartbeat.*

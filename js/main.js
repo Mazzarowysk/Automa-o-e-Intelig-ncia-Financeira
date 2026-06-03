@@ -20,6 +20,11 @@ function initDateEnd() {
         const today = new Date();
         endInput.value = today.toISOString().split('T')[0];
     }
+    
+    // Heartbeat ping: avisa ao servidor a cada 5s que o navegador ainda está aberto
+    setInterval(() => {
+        fetch('/ping').catch(() => {});
+    }, 5000);
 }
 
 function formatDateLabel(value) {
@@ -44,6 +49,7 @@ function formatDateLabel(value) {
 
 let activeChartTimeFrame = 'all';
 let activeTechChartTimeFrame = '1Y'; // Padrao: 1 ano a partir de hoje
+let activeRsiChartTimeFrame = 'all';
 
 function filterHistoryByTimeframe(data, timeframe) {
     if (!Array.isArray(data) || data.length === 0) return [];
@@ -113,6 +119,29 @@ function setupChartTimeframeControls() {
             [realPriceChartInstance, ma20ChartInstance, xgbForecastChartInstance, predictionPointsChartInstance]
                 .filter(Boolean)
                 .forEach(chart => chart.resetZoom());
+        });
+    }
+
+    const rsiControls = document.querySelectorAll('#rsi-timeframe-controls .chart-toggle-btn[data-period]');
+    const rsiResetZoomBtn = document.getElementById('rsi-reset-zoom-btn');
+    if (rsiControls && rsiControls.length > 0) {
+        rsiControls.forEach(btn => {
+            btn.addEventListener('click', () => {
+                rsiControls.forEach(item => item.classList.remove('active'));
+                btn.classList.add('active');
+                activeRsiChartTimeFrame = btn.dataset.period || 'all';
+                drawRsiChart();
+            });
+        });
+    }
+
+    if (rsiResetZoomBtn) {
+        rsiResetZoomBtn.addEventListener('click', () => {
+            if (rsiChartInstance && rsiChartInstance.options && rsiChartInstance.options.scales && rsiChartInstance.options.scales.x) {
+                rsiChartInstance.options.scales.x.min = undefined;
+                rsiChartInstance.options.scales.x.max = undefined;
+                rsiChartInstance.update('none');
+            }
         });
     }
 }
@@ -797,6 +826,10 @@ function getVisibleTechHistory() {
     return filterHistoryByTimeframe(globalData.history, activeTechChartTimeFrame);
 }
 
+function getVisibleRsiHistory() {
+    return filterHistoryByTimeframe(globalData.history, activeRsiChartTimeFrame);
+}
+
 window.drawCharts = drawCharts;
 
 window.addEventListener('resize', () => {
@@ -1027,7 +1060,7 @@ function drawPriceChart() {
                     ticks: {
                         autoSkip: true,
                         maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                        callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -1072,13 +1105,11 @@ function mostrarDetalhesHistorico(realInfo) {
 }
 
 function setupPriceChartWheelZoom() {
-    const chart = priceChartInstance;
-    if (!chart || !chart.canvas) return;
-
-    const canvas = chart.canvas;
-    if (canvas.__chartWheelZoomAttached) return;
+    const canvas = document.getElementById('priceChart');
+    if (!canvas || canvas.__chartWheelZoomAttached) return;
 
     const handleWheel = (event) => {
+        const chart = Chart.getChart(canvas) || window.priceChartInstance;
         if (!chart || !chart.scales || !chart.scales.x) return;
 
         event.preventDefault();
@@ -1114,6 +1145,7 @@ function setupPriceChartWheelZoom() {
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });
     canvas.addEventListener('dblclick', () => {
+        const chart = Chart.getChart(canvas) || window.priceChartInstance;
         if (!chart || !chart.options || !chart.options.scales || !chart.options.scales.x) return;
         chart.options.scales.x.min = undefined;
         chart.options.scales.x.max = undefined;
@@ -1342,7 +1374,7 @@ function drawTechCharts() {
                     ticks: {
                         autoSkip: true,
                         maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                        callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -1415,12 +1447,13 @@ function drawTechCharts() {
     window.predictionPointsChartInstance = predictionPointsChartInstance;
 
     // Adicionar zoom via scroll em todos os 4 graficos tecnicos
-    [realPriceChartInstance, ma20ChartInstance, xgbForecastChartInstance, predictionPointsChartInstance].forEach(instance => {
-        if (!instance || !instance.canvas) return;
-        const canvas = instance.canvas;
+    ['realPriceChart', 'ma20Chart', 'xgbForecastChart', 'predictionPointsChart'].forEach(canvasId => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
         if (canvas.__techWheelZoom) return;
         canvas.addEventListener('wheel', (event) => {
-            if (!instance.scales || !instance.scales.x) return;
+            const instance = Chart.getChart(canvas);
+            if (!instance || !instance.scales || !instance.scales.x) return;
             event.preventDefault();
             const total = instance.data.labels.length;
             const currentMin = Number.isFinite(instance.options.scales.x.min) ? instance.options.scales.x.min : 0;
@@ -1441,6 +1474,8 @@ function drawTechCharts() {
             instance.update('none');
         }, { passive: false });
         canvas.addEventListener('dblclick', () => {
+            const instance = Chart.getChart(canvas);
+            if (!instance || !instance.options || !instance.options.scales || !instance.options.scales.x) return;
             instance.options.scales.x.min = undefined;
             instance.options.scales.x.max = undefined;
             instance.update('none');
@@ -1453,7 +1488,7 @@ function drawRsiChart() {
     const ctx = document.getElementById('rsiChart').getContext('2d');
     if (rsiChartInstance) rsiChartInstance.destroy();
     
-    const histData = getVisibleHistory();
+    const histData = getVisibleRsiHistory();
     const labels = histData.map(d => formatDateLabel(d.Date));
     const rsiData = histData.map(d => d.rsi_14);
     
@@ -1521,7 +1556,7 @@ function drawRsiChart() {
                     ticks: {
                         autoSkip: true,
                         maxTicksLimit: 12,
-                        callback: (value) => formatDateLabel(value)
+                        callback: function(value) { return formatDateLabel(this.getLabelForValue(value)); }
                     }
                 },
                 y: {
@@ -1546,6 +1581,40 @@ function drawRsiChart() {
         }
     });
     window.rsiChartInstance = rsiChartInstance;
+
+    const canvas = document.getElementById('rsiChart');
+    if (canvas && !canvas.__rsiWheelZoomAttached) {
+        canvas.addEventListener('wheel', (event) => {
+            const chart = Chart.getChart(canvas);
+            if (!chart || !chart.scales || !chart.scales.x) return;
+            event.preventDefault();
+            const totalPoints = chart.data.labels.length;
+            const currentMin = Number.isFinite(chart.options.scales.x.min) ? chart.options.scales.x.min : 0;
+            const currentMax = Number.isFinite(chart.options.scales.x.max) ? chart.options.scales.x.max : totalPoints - 1;
+            const currentRange = Math.max(5, currentMax - currentMin);
+            const zoomStep = Math.max(1, Math.round(currentRange * 0.18));
+            const newRange = event.deltaY < 0 ? Math.max(5, currentRange - zoomStep) : Math.min(totalPoints - 1, currentRange + zoomStep);
+            const rect = canvas.getBoundingClientRect();
+            const xPixel = event.clientX - rect.left;
+            let centerValue = chart.scales.x.getValueForPixel ? chart.scales.x.getValueForPixel(xPixel) : currentMin + currentRange / 2;
+            if (typeof centerValue !== 'number' || isNaN(centerValue)) centerValue = currentMin + currentRange / 2;
+            let newMin = Math.round(centerValue - newRange / 2);
+            let newMax = Math.round(centerValue + newRange / 2);
+            if (newMin < 0) { newMin = 0; newMax = newRange; }
+            if (newMax > totalPoints - 1) { newMax = totalPoints - 1; newMin = Math.max(0, newMax - newRange); }
+            chart.options.scales.x.min = newMin;
+            chart.options.scales.x.max = newMax;
+            chart.update('none');
+        }, { passive: false });
+        canvas.addEventListener('dblclick', () => {
+            const chart = Chart.getChart(canvas);
+            if (!chart || !chart.options || !chart.options.scales || !chart.options.scales.x) return;
+            chart.options.scales.x.min = undefined;
+            chart.options.scales.x.max = undefined;
+            chart.update('none');
+        });
+        canvas.__rsiWheelZoomAttached = true;
+    }
 }
 
 /**

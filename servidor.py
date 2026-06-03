@@ -18,6 +18,18 @@ def calcular_data_fim_padrao():
 
 PORT = 8000
 
+last_ping_time = time.time() + 15 # 15s de carência inicial
+
+def heartbeat_monitor():
+    global last_ping_time
+    while True:
+        time.sleep(2)
+        if time.time() - last_ping_time > 10:
+            print("\n[INFO] Navegador fechado ou desconectado. Encerrando o servidor automaticamente...")
+            os._exit(0)
+
+threading.Thread(target=heartbeat_monitor, daemon=True).start()
+
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
     protocol_version = 'HTTP/1.0'
 
@@ -26,6 +38,16 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
+        global last_ping_time
+        if self.path == '/ping':
+            last_ping_time = time.time()
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(b'{"status": "ok"}')
+            return
+
         # Rota especial para desligar o servidor via requisição do navegador
         if self.path == '/shutdown':
             self.send_response(200)

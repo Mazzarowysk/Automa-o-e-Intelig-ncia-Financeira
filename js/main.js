@@ -58,6 +58,10 @@ function filterHistoryByTimeframe(data, timeframe) {
         startDate.setFullYear(startDate.getFullYear() - 3);
     } else if (timeframe === '1Y') {
         startDate.setFullYear(startDate.getFullYear() - 1);
+    } else if (timeframe === '3M') {
+        startDate.setMonth(startDate.getMonth() - 3);
+    } else if (timeframe === '1M') {
+        startDate.setMonth(startDate.getMonth() - 1);
     }
 
     return data.filter(row => {
@@ -695,12 +699,21 @@ function drawPriceChart() {
             const start = xScale.getPixelForValue(histLen - 0.5);
             if (start >= area.right) return;
             chart.ctx.save();
-            chart.ctx.fillStyle = 'rgba(37, 99, 235, 0.08)';
+            chart.ctx.fillStyle = 'rgba(245, 158, 11, 0.15)'; // Vibrant Orange background
             chart.ctx.fillRect(start, area.top, area.right - start, area.bottom - area.top);
-            chart.ctx.font = '600 13px Inter, sans-serif';
-            chart.ctx.fillStyle = 'rgba(37, 99, 235, 0.95)';
+            chart.ctx.font = 'bold 15px Inter, sans-serif';
+            chart.ctx.fillStyle = '#f59e0b'; // Vibrant Orange text
             chart.ctx.textAlign = 'left';
-            chart.ctx.fillText('Previsão futura (10 dias)', start + 10, area.top + 24);
+            chart.ctx.fillText('🌟 PREVISÕES XGBOOST (10 DIAS)', start + 10, area.top + 24);
+            
+            // Highlight final prediction if available
+            if (predData && predData.length > 0) {
+                const finalPred = predData[predData.length - 1];
+                chart.ctx.font = 'bold 18px Inter, sans-serif';
+                chart.ctx.fillStyle = '#10b981'; // Green text
+                chart.ctx.fillText(`Alvo: R$ ${finalPred.Preco_Previsto.toFixed(2)}`, start + 10, area.top + 50);
+            }
+            
             chart.ctx.restore();
         }
     };
@@ -1007,6 +1020,10 @@ function drawTechCharts() {
                 padding: { top: 10, right: 16, bottom: 6, left: 8 }
             },
             plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'x' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                },
                 legend: {
                     position: 'top',
                     labels: {
@@ -1050,6 +1067,10 @@ function drawTechCharts() {
                 padding: { top: 10, right: 16, bottom: 6, left: 8 }
             },
             plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'x' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                },
                 legend: {
                     position: 'top',
                     labels: {
@@ -1137,6 +1158,10 @@ function drawTechCharts() {
                 padding: { top: 10, right: 16, bottom: 6, left: 8 }
             },
             plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'x' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                },
                 legend: {
                     position: 'top',
                     labels: {
@@ -1219,6 +1244,10 @@ function drawTechCharts() {
                 padding: { top: 10, right: 16, bottom: 6, left: 8 }
             },
             plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'x' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                },
                 legend: {
                     position: 'top',
                     labels: {

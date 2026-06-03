@@ -982,7 +982,7 @@ def executar_streamlit():
     subprocess.run([sys.executable, '-m', 'streamlit', 'run', script_path, '--', '--modo-streamlit'])
 
 
-def baixar_dados_dolar(start="1995-01-01", end="2026-05-28"):
+def baixar_dados_dolar(start="1995-01-01", end="2026-06-03"):
     try:
         import requests
         # Converter datas para o formato do BCB dd/MM/yyyy
@@ -1010,7 +1010,7 @@ def baixar_dados_dolar(start="1995-01-01", end="2026-05-28"):
         print(f"⚠️ Erro ao baixar dados do Dólar (BCB): {e}")
         return pd.DataFrame()
 
-def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end="2026-05-28", arquivo="itub4_historico.csv"):
+def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end="2026-06-03", arquivo="itub4_historico.csv"):
     if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
         print(f"\n📥 Baixando dados atualizados de {ticker} via yfinance e Dólar via BCB...")
     try:
@@ -1051,7 +1051,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="ITUB4 Analysis")
     parser.add_argument('--start', type=str, default="1995-01-01", help="Start date YYYY-MM-DD")
-    parser.add_argument('--end', type=str, default="2026-05-28", help="End date YYYY-MM-DD")
+    parser.add_argument('--end', type=str, default="2026-06-03", help="End date YYYY-MM-DD")
     parser.add_argument('--modo-streamlit', action='store_true', help="Run in Streamlit mode")
     parser.add_argument('--no-dashboard', action='store_true', help="Do not start Streamlit server after processing")
     

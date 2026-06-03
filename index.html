@@ -16,6 +16,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Zoom Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -152,6 +155,8 @@
                             <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
                             <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
                             <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
+                            <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
+                            <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
                             <button class="chart-toggle-btn" id="reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
                         </div>
                     </div>

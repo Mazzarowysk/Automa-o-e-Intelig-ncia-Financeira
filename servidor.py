@@ -52,7 +52,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 data = json.loads(post_data)
                 start_date = data.get('start', '1995-01-01')
-                end_date = data.get('end', '2026-05-28')
+                end_date = data.get('end', '2026-06-03')
                 
                 print(f"\n[INFO] Solicitacao de retreinamento recebida: {start_date} a {end_date}")
                 print("[INFO] Treinando modelo... Isso pode levar alguns minutos.")

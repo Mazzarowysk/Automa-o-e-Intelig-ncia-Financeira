@@ -47,8 +47,8 @@ function renderSentimentData(data) {
     fill.style.width = percent + '%';
     
     let mainEmoji = '😐';
-    if (score >= 0.15) mainEmoji = '📈';
-    else if (score <= -0.15) mainEmoji = '📉';
+    if (score >= 0.15) mainEmoji = '😃';
+    else if (score <= -0.15) mainEmoji = '😡';
     
     statusEl.textContent = `${mainEmoji} ${cls}`;
     scoreTextEl.textContent = `Score Médio: ${score.toFixed(2)}`;
@@ -72,8 +72,8 @@ function renderSentimentData(data) {
     if (data.noticias && data.noticias.length > 0) {
         data.noticias.forEach(news => {
             let badgeColor = '#f59e0b', badgeText = '😐 NEUTRO';
-            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = '📈 OTIMISMO'; }
-            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = '📉 PESSIMISMO'; }
+            if (news.score >= 0.15)  { badgeColor = '#10b981'; badgeText = '😃 OTIMISMO'; }
+            if (news.score <= -0.15) { badgeColor = '#ef4444'; badgeText = '😡 PESSIMISMO'; }
 
             const linkOpen  = news.link ? `<a href="${news.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">` : '';
             const linkClose = news.link ? `</a>` : '';
@@ -220,10 +220,10 @@ function initDateEnd() {
         endInput.value = today.toISOString().split('T')[0];
     }
 
-    // Heartbeat ping: avisa ao servidor a cada 4s que o navegador ainda está aberto
+    // Heartbeat ping: avisa ao servidor a cada 2s que o navegador ainda está aberto
     setInterval(() => {
         fetch('/ping').catch(() => {});
-    }, 4000);
+    }, 2000);
 }
 
 function formatDateLabel(value) {

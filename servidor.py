@@ -29,7 +29,7 @@ def heartbeat_monitor():
     while not SHUTDOWN_FLAG.is_set():
         time.sleep(3)
         elapsed = time.time() - last_ping_time
-        if elapsed > 15:
+        if elapsed > 5:
             print(f"\n[INFO] Navegador fechado ou desconectado (sem ping há {elapsed:.0f}s). Encerrando servidor...")
             os._exit(0)
 

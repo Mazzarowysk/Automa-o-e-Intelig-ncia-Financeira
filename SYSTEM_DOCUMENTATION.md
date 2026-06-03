@@ -63,12 +63,21 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
 
 #### 2.3 Mecanismo de Heartbeat (Inovação Técnica)
 - O servidor Python se fecha de modo gracioso e automático caso o usuário feche a janela/aba do navegador.
-- O Frontend (`main.js`) dispara requisições a cada 5 segundos. O backend monitora este pulso de vida. Se passar mais de 10 segundos sem receber um "ping", o Python deduz que a sessão do usuário foi finalizada e encerra o processo no terminal.
+- O Frontend (`main.js`) dispara requisições a cada 2 segundos. O backend monitora este pulso de vida. Se passar mais de 5 segundos sem receber um "ping", o Python deduz que a sessão do usuário foi finalizada e encerra o processo no terminal.
 
 #### 2.4 Funcionalidade de Zoom e Estado Persistente
 - O sistema conta com recursos avançados de interatividade nos gráficos, permitindo **Zoom através do Scroll do Mouse** (via `chartjs-plugin-zoom`).
 - O estado de zoom é persistente e sincronizado entre visões minimizadas e o painel expandido (`chart-expand-modal`), garantindo uma análise técnica fluida sem perder o contexto temporal.
-- Controles temporais modulares (1M a 5Y) interagem diretamente com a instância dos gráficos, mantendo consistência na UX.
+- Controles temporais modulares (1W a 5Y, Global, Personalizado) interagem diretamente com a instância dos gráficos, mantendo consistência na UX.
+
+#### 2.5 Filtros Globais e Períodos Personalizados
+- Em todos os locais onde há recortes temporais (Gráficos, Sentimento, Treinamento da IA), foi introduzida a possibilidade de selecionar **Modo Global** (todo histórico) ou **Personalizado** (datas exatas de início e fim).
+- Ao realizar o **Retreinamento do Modelo**, a Análise de Sentimento é automaticamente orientada a adotar as exatas datas escolhidas para que o aprendizado e a verificação externa sejam coerentes no painel.
+
+#### 2.6 Análise de Sentimento com VADER NLP
+- Um módulo analisa as últimas notícias do mercado através da biblioteca `vaderSentiment`, pontuando a carga emotiva das reportagens como Otimista (😃), Neutra (😐) ou Pessimista (😡).
+- Os usuários visualizam estes resultados num termômetro com gradiente dinâmico e num log de notícias com badges estilizados e contagem de fontes filtradas.
+- *Nota:* A dependência da API pública gratuita limita o alcance profundo de dados históricos.
 
 ### 3. Arquivos de Dados (CSV / JSON)
 - `itub4_historico.csv`: Histórico bruto importado.
@@ -92,7 +101,6 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
 
 ### 5. Sugestões de Melhoria Futuras
 - Otimização Bayesiana de Hiperparâmetros para refino do R².
-- Inserção de Análise de Sentimento baseada em notícias ou publicações no X/Twitter.
 - Integração em tempo real com APIs de WebSocket (B3) para predições de intraday.
 
 ---

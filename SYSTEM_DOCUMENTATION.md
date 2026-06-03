@@ -36,14 +36,16 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
    - Calcula métricas (MAE, RMSE, R² e Acurácia de Direção).
    - Armazena resultados em `itub4_metricas.json`.
 
-7. **Geração de Previsões Futuras**
+7. **Geração de Previsões Futuras e Projeção Híbrida**
    - Utiliza o melhor modelo treinado para prever os próximos 10 dias úteis de preços (`itub4_previsoes_finais.csv`).
+   - A previsão puramente matemática é traçada no gráfico em vermelho.
+   - Uma **Projeção Ajustada pelo Sentimento** (linha azul pontilhada) é calculada dinamicamente no frontend: ela desvia a projeção matemática baseando-se no grau de otimismo ou pessimismo atual das notícias da Alpha Vantage.
 
 8. **Dashboard Interativo (HTML/JS/CSS)**
    - Sistema de visualização próprio, leve e interativo, focado na experiência do usuário (UX).
-   - Gráficos integrados utilizando **Chart.js** (Preços, Previsões, RSI, Médias Móveis).
-   - Tooltips (dicas) instrucionais, painel de "Ferramentas do Analista" e métricas KPIs detalhadas.
-   - Funcionalidade avançada de **Zoom com Scroll do Mouse** sincronizada e persistente entre gráficos.
+   - Painel exclusivo de **Análise de Confluência de Sinais**, que emite alertas automatizados (Compra Forte, Venda Forte, Alerta de Risco) baseados no cruzamento entre a tendência da IA matemática e o sentimento humano.
+   - Gráficos integrados utilizando **Chart.js** (Preços, Previsões Híbridas, RSI, Médias Móveis).
+   - Funcionalidade avançada de **Zoom com Scroll do Mouse** sincronizada e persistente.
 
 #### Tecnologias Utilizadas
 - **Backend/IA**: Python 3.12, pandas, numpy, scikit-learn, xgboost.

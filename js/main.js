@@ -59,6 +59,15 @@ function renderSentimentData(data) {
     const percent  = ((score + 1) / 2) * 100;
     const newsCount= data.noticias?.length ?? 0;
 
+    // Salvar globalmente para uso no gráfico de previsão híbrida
+    window.currentSentimentScore = score;
+    window.currentSentimentClass = cls;
+    
+    // Atualiza imediatamente o painel de confluência, se houver
+    if (typeof updateConfluencePanel === 'function') {
+        updateConfluencePanel();
+    }
+
     const countEl = document.getElementById('sentiment-news-count');
     if (countEl) countEl.textContent = newsCount;
 
@@ -1180,6 +1189,26 @@ function drawPriceChart() {
     const xgbHistorical = xgbLine;
     const xgbFutureOnly = new Array(histData.length).fill(null).concat(xgbFuture);
 
+    // Lógica da Previsão Ajustada pelo Sentimento (Híbrida)
+    let xgbFutureAdjustedOnly = [];
+    if (predData.length > 0) {
+        const sentimentScore = window.currentSentimentScore || 0;
+        // Se sentimentScore for 1.0 (máximo otimismo), o ajuste cresce até +2.5% no dia 10 (0.0025 por dia)
+        // Se for -1.0 (máximo pessimismo), o ajuste cresce até -2.5% no dia 10
+        const ajusteDiario = sentimentScore * 0.0025; 
+        
+        const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
+            const diasFuturos = index + 1; // 1 a 10
+            const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
+            return preco * fatorAjuste;
+        });
+        
+        xgbFutureAdjustedOnly = new Array(histData.length).fill(null).concat(xgbFutureAdjusted);
+        
+        // Chamar atualização do painel de confluência
+        setTimeout(() => updateConfluencePanel(), 100);
+    }
+
     const futureAreaPlugin = {
         id: 'futureArea',
         beforeDraw: (chart) => {
@@ -1261,9 +1290,23 @@ function drawPriceChart() {
                     spanGaps: true,
                     pointRadius: 0,
                     pointHoverRadius: 8,
+                    fill: false
+                },
+                {
+                    label: 'Ajuste c/ Sentimento Notícias',
+                    data: xgbFutureAdjustedOnly,
+                    borderColor: '#06b6d4', // Cyan
+                    backgroundColor: 'rgba(6, 182, 212, 0.15)',
+                    borderWidth: 3,
+                    borderDash: [3, 3],
+                    tension: 0.12,
+                    spanGaps: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
                     fill: {
-                        target: 'origin',
-                        above: 'rgba(220, 37, 37, 0.08)'
+                        target: '-1',
+                        above: 'rgba(16, 185, 129, 0.15)', // Verde se ajustado > normal
+                        below: 'rgba(239, 68, 68, 0.15)'   // Vermelho se ajustado < normal
                     }
                 },
                 {
@@ -2275,3 +2318,69 @@ function setupAnalystDiary() {
     renderTimeline();
 }
 
+/**
+ * Atualiza o painel de Confluência de Sinais baseado na IA (XGBoost) e no Sentimento das Notícias.
+ */
+window.updateConfluencePanel = function() {
+    const badgeEl = document.getElementById('confluence-badge');
+    const descEl = document.getElementById('confluence-desc');
+    
+    if (!badgeEl || !descEl) return;
+    
+    // Obter última previsão XGBoost e o preço atual
+    if (!globalData || !globalData.predictions || globalData.predictions.length === 0 || !globalData.history || globalData.history.length === 0) {
+        return; // Aguarda dados
+    }
+    
+    const currentPrice = globalData.history[globalData.history.length - 1].Close;
+    const finalPred = globalData.predictions[globalData.predictions.length - 1].Preco_Previsto;
+    
+    let aiTrend = 0; // 0=neutro, 1=alta, -1=baixa
+    const change = (finalPred - currentPrice) / currentPrice;
+    
+    if (change > 0.005) aiTrend = 1;
+    else if (change < -0.005) aiTrend = -1;
+    
+    // Obter sentimento (já atualizado no renderSentimentData)
+    const sentimentScore = window.currentSentimentScore || 0;
+    let sentTrend = 0;
+    if (sentimentScore >= 0.05) sentTrend = 1;
+    else if (sentimentScore <= -0.05) sentTrend = -1;
+    
+    // Lógica de Confluência
+    if (aiTrend === 1 && sentTrend === 1) {
+        badgeEl.innerHTML = '<i class="fa-solid fa-angles-up"></i> COMPRA FORTE';
+        badgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
+        badgeEl.style.color = '#10b981';
+        badgeEl.style.border = '1px solid #10b981';
+        descEl.innerHTML = 'A <strong>Matemática da IA</strong> prevê ALTA e as <strong>Notícias</strong> estão OTIMISTAS. Sinal mútuo de crescimento.';
+    } 
+    else if (aiTrend === -1 && sentTrend === -1) {
+        badgeEl.innerHTML = '<i class="fa-solid fa-angles-down"></i> VENDA FORTE';
+        badgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
+        badgeEl.style.color = '#ef4444';
+        badgeEl.style.border = '1px solid #ef4444';
+        descEl.innerHTML = 'A <strong>Matemática da IA</strong> prevê QUEDA e as <strong>Notícias</strong> estão PESSIMISTAS. Sinal mútuo de retração.';
+    }
+    else if (aiTrend === 1 && sentTrend === -1) {
+        badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
+        badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
+        badgeEl.style.color = '#f59e0b';
+        badgeEl.style.border = '1px solid #f59e0b';
+        descEl.innerHTML = 'Divergência: <strong>IA</strong> prevê ALTA, mas as <strong>Notícias</strong> estão PESSIMISTAS. O mercado pode contrariar os gráficos por pânico.';
+    }
+    else if (aiTrend === -1 && sentTrend === 1) {
+        badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
+        badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
+        badgeEl.style.color = '#f59e0b';
+        badgeEl.style.border = '1px solid #f59e0b';
+        descEl.innerHTML = 'Divergência: <strong>IA</strong> prevê QUEDA, mas as <strong>Notícias</strong> estão OTIMISTAS. O mercado pode ignorar a análise técnica.';
+    }
+    else {
+        badgeEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> SINAL NEUTRO';
+        badgeEl.style.background = 'rgba(148, 163, 184, 0.2)';
+        badgeEl.style.color = '#94a3b8';
+        badgeEl.style.border = '1px solid #94a3b8';
+        descEl.innerHTML = 'Falta de confluência direcional clara entre a Matemática (IA) e o Humor das Notícias.';
+    }
+};

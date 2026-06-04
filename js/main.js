@@ -2348,6 +2348,42 @@ window.updateConfluencePanel = function() {
     if (sentimentScore >= 0.05) sentTrend = 1;
     else if (sentimentScore <= -0.05) sentTrend = -1;
     
+    // Preencher o Raio-X Expansível
+    const confAiDetail = document.getElementById('conf-ai-detail');
+    const confAiSub = document.getElementById('conf-ai-sub');
+    const confNewsDetail = document.getElementById('conf-news-detail');
+    const confNewsSub = document.getElementById('conf-news-sub');
+
+    if (confAiDetail) {
+        const changePct = (change * 100).toFixed(2);
+        confAiDetail.innerHTML = `Alvo R$ ${finalPred.toFixed(2)} (<span style="color:${aiTrend===1?'#10b981':aiTrend===-1?'#ef4444':'#f59e0b'}">${changePct > 0 ? '+'+changePct : changePct}%</span>)`;
+        confAiSub.innerHTML = `Base: Preço Atual de R$ ${currentPrice.toFixed(2)}`;
+    }
+    if (confNewsDetail) {
+        confNewsDetail.innerHTML = `Score Médio: <span style="color:${sentTrend===1?'#10b981':sentTrend===-1?'#ef4444':'#f59e0b'}">${sentimentScore.toFixed(3)}</span>`;
+        confNewsSub.innerHTML = `Analisado via Processamento de Linguagem Natural`;
+    }
+
+    // Configurar o gatilho de clique expansível (se ainda não tiver)
+    const confPanel = document.getElementById('confluence-panel');
+    const confDetails = document.getElementById('confluence-details');
+    const confArrow = document.getElementById('confluence-arrow');
+    if (confPanel && confDetails && !confPanel.dataset.clickableSet) {
+        confPanel.dataset.clickableSet = "true";
+        confPanel.addEventListener('click', () => {
+            if (confDetails.style.display === 'none') {
+                confDetails.style.display = 'block';
+                confArrow.style.transform = 'rotate(180deg)';
+                confPanel.style.borderBottomLeftRadius = '0';
+                confPanel.style.borderBottomRightRadius = '0';
+            } else {
+                confDetails.style.display = 'none';
+                confArrow.style.transform = 'rotate(0deg)';
+                confPanel.style.borderRadius = '';
+            }
+        });
+    }
+
     // Lógica de Confluência
     if (aiTrend === 1 && sentTrend === 1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-angles-up"></i> COMPRA FORTE';

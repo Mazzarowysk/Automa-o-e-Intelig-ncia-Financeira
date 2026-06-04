@@ -220,17 +220,38 @@
             <section id="charts-section" class="charts-grid">
                 
                 <!-- Confluência de Sinais Panel -->
-                <div id="confluence-panel" class="glass-panel" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 15px 25px; border-left: 5px solid #64748b; background: rgba(15, 23, 42, 0.6);">
-                    <div>
-                        <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-code-merge"></i> Análise de Confluência (IA + Notícias)
-                        </h3>
-                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94a3b8;" id="confluence-desc">
-                            Aguardando dados matemáticos e de sentimento...
-                        </p>
+                <div id="confluence-panel-wrapper" style="grid-column: 1 / -1; margin-bottom: 15px;">
+                    <div id="confluence-panel" class="glass-panel" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 25px; border-left: 5px solid #64748b; background: rgba(15, 23, 42, 0.6); cursor: pointer; transition: all 0.3s ease;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-code-merge"></i> Análise de Confluência (IA + Notícias)
+                            </h3>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94a3b8;" id="confluence-desc">
+                                Aguardando dados matemáticos e de sentimento...
+                            </p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div id="confluence-badge" style="padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1); color: #cbd5e1; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Analisando...
+                            </div>
+                            <i id="confluence-arrow" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 1.2rem; transition: transform 0.3s ease;"></i>
+                        </div>
                     </div>
-                    <div id="confluence-badge" style="padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1); color: #cbd5e1; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-spinner fa-spin"></i> Analisando...
+                    <!-- Detalhes Expansíveis -->
+                    <div id="confluence-details" class="glass-panel" style="display: none; padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(15, 23, 42, 0.4); margin-top: 2px;">
+                        <h4 style="margin: 0 0 15px 0; color: #f8fafc; font-size: 0.95rem;"><i class="fa-solid fa-microscope"></i> Raio-X da Confluência</h4>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Sinal Matemático (IA)</span>
+                                <div id="conf-ai-detail" style="font-size: 1.1rem; font-weight: 600; color: #f8fafc; margin-top: 5px;">--</div>
+                                <div id="conf-ai-sub" style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">Previsão vs Preço Atual</div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Humor do Mercado (Notícias)</span>
+                                <div id="conf-news-detail" style="font-size: 1.1rem; font-weight: 600; color: #f8fafc; margin-top: 5px;">--</div>
+                                <div id="conf-news-sub" style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">Score de NLP das Notícias</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

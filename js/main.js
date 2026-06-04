@@ -1193,8 +1193,12 @@ function drawPriceChart() {
     let xgbFutureAdjustedOnly = [];
     if (predData.length > 0) {
         const sentimentScore = window.currentSentimentScore || 0;
-        // Aumentado o peso visual do sentimento para que a linha ciano fique nítida e separada da vermelha
-        const ajusteDiario = sentimentScore * 0.008; 
+        // Amplificador visual: Garante que a linha ciano "fuja" da sombra da vermelha mesmo com sentimento fraco
+        let visualSentiment = sentimentScore;
+        if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+             visualSentiment = sentimentScore > 0 ? 0.3 : -0.3; // Espaçamento mínimo
+        }
+        const ajusteDiario = visualSentiment * 0.015; 
         
         const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
             const diasFuturos = index + 1; // 1 a 10
@@ -2428,7 +2432,12 @@ window.updateConfluencePanel = function() {
             const predData = globalData.predictions;
             if (predData.length > 0) {
                 const xgbFuture = predData.map(d => d.Preco_Previsto);
-                const ajusteDiario = sentimentScore * 0.008; 
+                
+                let visualSentiment = sentimentScore;
+                if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+                     visualSentiment = sentimentScore > 0 ? 0.3 : -0.3; 
+                }
+                const ajusteDiario = visualSentiment * 0.015; 
                 
                 const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
                     const diasFuturos = index + 1; // 1 a 10

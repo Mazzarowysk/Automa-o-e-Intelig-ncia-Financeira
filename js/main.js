@@ -1193,9 +1193,8 @@ function drawPriceChart() {
     let xgbFutureAdjustedOnly = [];
     if (predData.length > 0) {
         const sentimentScore = window.currentSentimentScore || 0;
-        // Se sentimentScore for 1.0 (máximo otimismo), o ajuste cresce até +2.5% no dia 10 (0.0025 por dia)
-        // Se for -1.0 (máximo pessimismo), o ajuste cresce até -2.5% no dia 10
-        const ajusteDiario = sentimentScore * 0.0025; 
+        // Aumentado o peso visual do sentimento para que a linha ciano fique nítida e separada da vermelha
+        const ajusteDiario = sentimentScore * 0.008; 
         
         const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
             const diasFuturos = index + 1; // 1 a 10
@@ -2429,7 +2428,7 @@ window.updateConfluencePanel = function() {
             const predData = globalData.predictions;
             if (predData.length > 0) {
                 const xgbFuture = predData.map(d => d.Preco_Previsto);
-                const ajusteDiario = sentimentScore * 0.0025; 
+                const ajusteDiario = sentimentScore * 0.008; 
                 
                 const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
                     const diasFuturos = index + 1; // 1 a 10

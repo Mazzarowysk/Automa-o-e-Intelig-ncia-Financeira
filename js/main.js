@@ -1628,6 +1628,24 @@ function drawTechCharts() {
     if (xgbForecastChartInstance) xgbForecastChartInstance.destroy();
     const xgbHistoricalTech = xgbLine;
     const xgbFutureTech = new Array(histData.length).fill(null).concat(xgbFuture);
+
+    // Linha Ciano: Previsão Ajustada por Sentimento (mesma lógica do gráfico principal)
+    let xgbFutureTechAdjusted = [];
+    if (predData.length > 0) {
+        const sentimentScore = window.currentSentimentScore || 0;
+        let visualSentiment = sentimentScore;
+        if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+            visualSentiment = sentimentScore > 0 ? 0.3 : -0.3;
+        }
+        const ajusteDiario = visualSentiment * 0.015;
+        const adjusted = xgbFuture.map((preco, index) => {
+            const diasFuturos = index + 1;
+            const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
+            return preco * fatorAjuste;
+        });
+        xgbFutureTechAdjusted = new Array(histData.length).fill(null).concat(adjusted);
+    }
+
     const futureAreaPluginTech = {
         id: 'futureAreaTech',
         beforeDraw: (chart) => {
@@ -1666,19 +1684,33 @@ function drawTechCharts() {
                     fill: false
                 },
                 {
-                    label: 'XGBoost Futuro',
+                    label: 'XGBoost Futuro (IA)',
                     data: xgbFutureTech,
-                    borderColor: '#b91c1c',
-                    backgroundColor: 'rgba(185, 28, 28, 0.14)',
+                    borderColor: '#dc2626',
+                    backgroundColor: 'rgba(220, 38, 38, 0.12)',
                     borderWidth: 4,
                     borderDash: [10, 6],
                     tension: 0.16,
                     spanGaps: true,
                     pointRadius: 0,
                     pointHoverRadius: 6,
+                    fill: false
+                },
+                {
+                    label: 'Ajuste c/ Sentimento Notícias',
+                    data: xgbFutureTechAdjusted,
+                    borderColor: '#06b6d4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.10)',
+                    borderWidth: 3,
+                    borderDash: [3, 3],
+                    tension: 0.16,
+                    spanGaps: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
                     fill: {
-                        target: 'origin',
-                        above: 'rgba(185, 28, 28, 0.08)'
+                        target: '-1',
+                        above: 'rgba(16, 185, 129, 0.12)',
+                        below: 'rgba(239, 68, 68, 0.12)'
                     }
                 }
             ]
@@ -2424,7 +2456,7 @@ window.updateConfluencePanel = function() {
         descEl.innerHTML = 'Falta de confluência direcional clara entre a Matemática (IA) e o Humor das Notícias.';
     }
 
-    // --- ATUALIZAÇÃO DINÂMICA DO GRÁFICO CIANO ---
+    // --- ATUALIZAÇÃO DINÂMICA DO GRÁFICO CIANO (GRÁFICO PRINCIPAL) ---
     if (window.priceChartInstance && window.priceChartInstance.data && window.priceChartInstance.data.datasets) {
         const adjustedDataset = window.priceChartInstance.data.datasets.find(ds => ds.label === 'Ajuste c/ Sentimento Notícias');
         if (adjustedDataset && globalData.history && globalData.predictions) {
@@ -2440,13 +2472,39 @@ window.updateConfluencePanel = function() {
                 const ajusteDiario = visualSentiment * 0.015; 
                 
                 const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
-                    const diasFuturos = index + 1; // 1 a 10
+                    const diasFuturos = index + 1;
                     const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
                     return preco * fatorAjuste;
                 });
                 
                 adjustedDataset.data = new Array(histData.length).fill(null).concat(xgbFutureAdjusted);
-                window.priceChartInstance.update('none'); // Update rápido, sem quebrar zoom ou animação
+                window.priceChartInstance.update('none');
+            }
+        }
+    }
+
+    // --- ATUALIZAÇÃO DINÂMICA DO GRÁFICO CIANO (ABA ANÁLISE TÉCNICA) ---
+    if (window.xgbForecastChartInstance && window.xgbForecastChartInstance.data && window.xgbForecastChartInstance.data.datasets) {
+        const adjustedTechDataset = window.xgbForecastChartInstance.data.datasets.find(ds => ds.label === 'Ajuste c/ Sentimento Notícias');
+        if (adjustedTechDataset && globalData.predictions) {
+            const predData = globalData.predictions;
+            const histLen = window.xgbForecastChartInstance.data.datasets[0]?.data?.length || 0;
+            if (predData.length > 0 && histLen > 0) {
+                const xgbFuture = predData.map(d => d.Preco_Previsto);
+
+                let visualSentiment = sentimentScore;
+                if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+                    visualSentiment = sentimentScore > 0 ? 0.3 : -0.3;
+                }
+                const ajusteDiario = visualSentiment * 0.015;
+
+                const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
+                    const fatorAjuste = 1 + (ajusteDiario * (index + 1));
+                    return preco * fatorAjuste;
+                });
+
+                adjustedTechDataset.data = new Array(histLen).fill(null).concat(xgbFutureAdjusted);
+                window.xgbForecastChartInstance.update('none');
             }
         }
     }

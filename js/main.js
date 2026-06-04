@@ -2338,8 +2338,9 @@ window.updateConfluencePanel = function() {
     let aiTrend = 0; // 0=neutro, 1=alta, -1=baixa
     const change = (finalPred - currentPrice) / currentPrice;
     
-    if (change > 0.005) aiTrend = 1;
-    else if (change < -0.005) aiTrend = -1;
+    // Deixando mais sensível: qualquer variação de > 0.1% já ativa alerta
+    if (change > 0.001) aiTrend = 1;
+    else if (change < -0.001) aiTrend = -1;
     
     // Obter sentimento (já atualizado no renderSentimentData)
     const sentimentScore = window.currentSentimentScore || 0;
@@ -2353,28 +2354,28 @@ window.updateConfluencePanel = function() {
         badgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
         badgeEl.style.color = '#10b981';
         badgeEl.style.border = '1px solid #10b981';
-        descEl.innerHTML = 'A <strong>Matemática da IA</strong> prevê ALTA e as <strong>Notícias</strong> estão OTIMISTAS. Sinal mútuo de crescimento.';
+        descEl.innerHTML = `A <strong>Matemática da IA</strong> prevê ALTA (+${(change*100).toFixed(2)}%) e as <strong>Notícias</strong> estão OTIMISTAS. Sinal mútuo de crescimento.`;
     } 
     else if (aiTrend === -1 && sentTrend === -1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-angles-down"></i> VENDA FORTE';
         badgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
         badgeEl.style.color = '#ef4444';
         badgeEl.style.border = '1px solid #ef4444';
-        descEl.innerHTML = 'A <strong>Matemática da IA</strong> prevê QUEDA e as <strong>Notícias</strong> estão PESSIMISTAS. Sinal mútuo de retração.';
+        descEl.innerHTML = `A <strong>Matemática da IA</strong> prevê QUEDA (${(change*100).toFixed(2)}%) e as <strong>Notícias</strong> estão PESSIMISTAS. Sinal mútuo de retração.`;
     }
     else if (aiTrend === 1 && sentTrend === -1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
         badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
         badgeEl.style.color = '#f59e0b';
         badgeEl.style.border = '1px solid #f59e0b';
-        descEl.innerHTML = 'Divergência: <strong>IA</strong> prevê ALTA, mas as <strong>Notícias</strong> estão PESSIMISTAS. O mercado pode contrariar os gráficos por pânico.';
+        descEl.innerHTML = `Divergência: <strong>IA</strong> prevê ALTA (+${(change*100).toFixed(2)}%), mas as <strong>Notícias</strong> estão PESSIMISTAS. Mercado pode contrariar os gráficos por pânico.`;
     }
     else if (aiTrend === -1 && sentTrend === 1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
         badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
         badgeEl.style.color = '#f59e0b';
         badgeEl.style.border = '1px solid #f59e0b';
-        descEl.innerHTML = 'Divergência: <strong>IA</strong> prevê QUEDA, mas as <strong>Notícias</strong> estão OTIMISTAS. O mercado pode ignorar a análise técnica.';
+        descEl.innerHTML = `Divergência: <strong>IA</strong> prevê QUEDA (${(change*100).toFixed(2)}%), mas as <strong>Notícias</strong> estão OTIMISTAS. Mercado pode ignorar a análise técnica.`;
     }
     else {
         badgeEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> SINAL NEUTRO';
@@ -2382,5 +2383,27 @@ window.updateConfluencePanel = function() {
         badgeEl.style.color = '#94a3b8';
         badgeEl.style.border = '1px solid #94a3b8';
         descEl.innerHTML = 'Falta de confluência direcional clara entre a Matemática (IA) e o Humor das Notícias.';
+    }
+
+    // --- ATUALIZAÇÃO DINÂMICA DO GRÁFICO CIANO ---
+    if (window.priceChartInstance && window.priceChartInstance.data && window.priceChartInstance.data.datasets) {
+        const adjustedDataset = window.priceChartInstance.data.datasets.find(ds => ds.label === 'Ajuste c/ Sentimento Notícias');
+        if (adjustedDataset && globalData.history && globalData.predictions) {
+            const histData = globalData.history;
+            const predData = globalData.predictions;
+            if (predData.length > 0) {
+                const xgbFuture = predData.map(d => d.Preco_Previsto);
+                const ajusteDiario = sentimentScore * 0.0025; 
+                
+                const xgbFutureAdjusted = xgbFuture.map((preco, index) => {
+                    const diasFuturos = index + 1; // 1 a 10
+                    const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
+                    return preco * fatorAjuste;
+                });
+                
+                adjustedDataset.data = new Array(histData.length).fill(null).concat(xgbFutureAdjusted);
+                window.priceChartInstance.update('none'); // Update rápido, sem quebrar zoom ou animação
+            }
+        }
     }
 };

@@ -43,7 +43,10 @@ Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utiliza
 
 8. **Dashboard Interativo (HTML/JS/CSS)**
    - Sistema de visualização próprio, leve e interativo, focado na experiência do usuário (UX).
-   - Painel exclusivo de **Análise de Confluência de Sinais**, que emite alertas automatizados (Compra Forte, Venda Forte, Alerta de Risco) baseados no cruzamento entre a tendência da IA matemática e o sentimento humano.
+   - **Análise de Confluência de Sinais:** Painel dinâmico e inteligente que cruza a tendência da IA (Matemática) com o sentimento NLP (Humano). 
+     - Emite alertas imediatos (Compra Forte, Venda Forte, Alerta de Risco, Neutro).
+     - **Painel Expansível Interativo:** O usuário pode clicar no painel para abrir o **"Raio-X da Confluência"**, revelando detalhes numéricos exatos de alvo de preço, porcentagem de variação e score numérico do sentimento.
+     - **Sensibilidade Refinada:** O limite de gatilho para divergências da IA foi ajustado para maior sensibilidade (0.1%), e a projeção híbrida ciano no gráfico foi escalada para garantir nitidez e separação visual imediata.
    - Gráficos integrados utilizando **Chart.js** (Preços, Previsões Híbridas, RSI, Médias Móveis).
    - Funcionalidade avançada de **Zoom com Scroll do Mouse** sincronizada e persistente.
 

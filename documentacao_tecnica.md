@@ -8,60 +8,151 @@ Este documento detalha o funcionamento interno, as métricas de interface e a ar
 
 O ecossistema do painel "ITUB4 Quantum" foi construído mesclando três grandes frentes:
 
-1. **Pipeline de Dados Macro e Micro:** Através das bibliotecas `yfinance` e de comunicação HTTP com a API do Banco Central (SGS do BCB), o sistema une os dados de pregões do Itau (Abertura, Máxima, Mínima, Fechamento e Volume) à oscilação da taxa de câmbio diária. Os dados são carregados no arquivo *itub4_historico.csv*.
-2. **Engenharia de Variáveis (Feature Engineering):** Como o mercado financeiro depende muito de padrões repetitivos, o backend usa a biblioteca `pandas` para compilar mais de 147 variáveis temporais baseadas no preço puro da ação antes de entregar ao modelo.
-3. **Machine Learning (XGBoost Otimizado):** O cérebro do sistema utiliza validação cruzada (`TimeSeriesSplit`) e Hyperparameter Tuning (`GridSearchCV` ou `RandomizedSearchCV`). A IA cria várias árvores de decisão para projetar os fechamentos em um horizonte estendido de 10 dias no futuro.
-4. **Dashboard Dinâmico Local:** Toda interação é servida em *Vanilla JS* associada à renderização avançada do *Chart.js*, com zoom expansível e customização de "timeframes" globais.
+1. **Pipeline de Dados Macro e Micro:** Através das bibliotecas `yfinance` e de comunicação HTTP com a API do Banco Central (SGS do BCB), o sistema une os dados de pregões do Itaú (Abertura, Máxima, Mínima, Fechamento e Volume) à oscilação da taxa de câmbio diária. Os dados são carregados no arquivo *itub4_historico.csv*.
+2. **Engenharia de Variáveis (Feature Engineering):** Como o mercado financeiro depende muito de padrões repetitivos, o backend usa a biblioteca `pandas` para compilar mais de 50 indicadores técnicos baseados no preço puro da ação antes de entregar ao modelo.
+3. **Machine Learning (XGBoost Otimizado):** O cérebro do sistema utiliza validação cruzada (`TimeSeriesSplit`) e Hyperparameter Tuning. A IA cria várias árvores de decisão para projetar os fechamentos em um horizonte de 10 dias no futuro.
+4. **Dashboard Dinâmico Local:** Toda interação é servida em *Vanilla JS* associada à renderização avançada do *Chart.js*, com zoom por scroll do mouse e customização de timeframes globais.
+
+### Princípio de Estado Único (Single Source of Truth)
+
+Todos os gráficos, em todas as abas, partem do mesmo conjunto de dados centralizado no objeto `globalData` e do mesmo score de sentimento em `window.currentSentimentScore`. Qualquer mudança de parâmetro (período de sentimento, retreinamento, novo período de notícias) propaga automaticamente para todas as abas e gráficos, sem inconsistências.
 
 ---
 
 ## 2. Indicadores do Dashboard (Cards Principais)
 
-A interface na *Aba Indicadores* e *Dashboard Principal* baseia-se em *Cards de KPIs* (Key Performance Indicators). 
+A interface na *Aba Indicadores* e *Dashboard Principal* baseia-se em *Cards de KPIs* (Key Performance Indicators).
 
-* **MAE (Erro Médio Absoluto):** A principal métrica de risco do painel. Exibida em Reais (R$), mede a distância histórica média entre as "apostas" do XGBoost e o preço que de fato ocorreu.
-* **RMSE (Raiz do Erro Quadrático Médio):** Uma métrica mais punitiva aos erros extremos. Mede também o erro em Reais, mas dá um peso maior se a IA errou a previsão por valores drásticos.
-* **Poder de Explicação (R²):** Oscila até 1 (ou 100%). Mostra que porcentagem das variações do preço foram explicadas perfeitamente pelas variáveis do modelo (e não pelo acaso/mercado cego). 
-* **RSI Atual (14d):** *Índice de Força Relativa*. Funciona como um termômetro comportamental dos últimos 14 dias: acima de 70 = ação está cara / euforia de compra (*sobrecomprada*). Abaixo de 30 = excesso de pânico (*sobrevendida*).
-* **Último Fechamento:** Demonstra de onde a previsão inicial está partindo (o preço real do último pregão com mercado aberto computado).
-* **Acurácia Direcional:** Mostra o percentual de acerto da direção do ativo, ou seja, quantas vezes a inteligência consegue prever corretamente se a ação terminará em tendência de subida ou de descida.
-
----
-
-## 3. Mapa de Gráficos (Aba Principal e Técnica)
-
-O sistema de gráficos utiliza canvas robustos com janelas modais (`chart-expand-modal`) para avaliações minuciosas:
-
-* **Gráfico Histórico de Preços e Previsão (`priceChart`):** O gráfico primário da tela. O longo traçado histórico termina e se conecta a uma "Trilha de Previsão" azul, indicando visualmente a oscilação esperada pela IA nos pregões que não ocorreram.
-* **Oscilador RSI (`rsiChart`):** Um gráfico inferior acompanhando o Preço Real, limitado entre o eixo 0 e 100.
-* **Preço Real (`realPriceChart`):** Canvas simplificado dos últimos D dias, focado na inspeção manual do comportamento direcional limpo.
-* **Média Móvel de 20 dias (`ma20Chart`):** Um traçado onde o "ruído" diário é diluído em uma linha de base, indicando tendências de reversões no médio prazo.
-* **Previsão IA (XGBoost) Isolada (`xgbForecastChart`):** Isola a linha preditiva, muito útil na aba técnica para contrastar a projeção antes da conexão macro no HTML principal.
-* **Pontos de Previsão (`predictionPointsChart`):** Scatter plot exibindo os pontos no qual o robô encontrou inflexões diretas no preço, correlacionando aos níveis de preço atual.
+* **MAE (Erro Médio Absoluto):** A principal métrica de risco do painel. Exibida em Reais (R$), mede a distância histórica média entre as previsões do XGBoost e o preço que de fato ocorreu.
+* **RMSE (Raiz do Erro Quadrático Médio):** Uma métrica mais punitiva aos erros extremos. Mede o erro em Reais, dando peso maior a previsões com erros drásticos.
+* **Poder de Explicação (R²):** Oscila até 1 (100%). Mostra que porcentagem das variações do preço foram explicadas pelo modelo (e não pelo acaso). Quanto mais próximo de 1, maior a consistência do modelo.
+* **RSI Atual (14d):** *Índice de Força Relativa*. Termômetro comportamental dos últimos 14 dias: acima de 70 = sobrecomprada (euforia). Abaixo de 30 = sobrevendida (pânico).
+* **Último Fechamento:** Ponto de partida real para as previsões futuras (último pregão computado).
+* **Acurácia Direcional:** Percentual de acerto da direção do ativo (subida ou queda) nas previsões históricas do modelo.
 
 ---
 
-## 4. Engenharia de Features e a Padronização (Z-Score)
+## 3. Mapa de Gráficos — Interligação entre Abas
 
-As colunas alimentadas ao `XGBRegressor` são as responsáveis pelo poder preditivo. Elas incluem:
+O sistema possui **6 gráficos ativos** distribuídos em duas abas. Todos compartilham o mesmo `globalData`.
+
+### 3.1 Dashboard Principal
+
+| Gráfico | ID Canvas | O que Mostra | Conectado ao Sentimento? |
+|---------|-----------|--------------|--------------------------|
+| Histórico + Previsão | `priceChart` | Preço real, MM20, XGBoost futuro (vermelho), **Linha Ciano** (ajuste por sentimento) | ✅ Sim — cone de risco atualiza em tempo real |
+| Oscilador RSI | `rsiChart` | RSI 14 períodos com zonas 30/70 coloridas | ❌ Indicador técnico puro |
+
+### 3.2 Aba Análise Técnica
+
+| Gráfico | ID Canvas | O que Mostra | Conectado ao Sentimento? |
+|---------|-----------|--------------|--------------------------|
+| Preço Real | `realPriceChart` | Histórico real simples | ❌ Visualização isolada |
+| Média Móvel 20d | `ma20Chart` | Tendência de médio prazo | ❌ Visualização isolada |
+| Previsão IA (XGBoost) | `xgbForecastChart` | XGBoost histórico + XGBoost futuro (vermelho) + **Linha Ciano** | ✅ Sim — cone de risco espelhado do Principal |
+| Pontos de Previsão | `predictionPointsChart` | Losangos roxos nos alvos diários | ❌ Visualização isolada |
+
+### 3.3 Controles de Período — Independência por Aba
+
+Cada aba tem seus próprios controles temporais, permitindo análises cruzadas:
+- **Gráfico Principal:** `timeframe-controls` → redesenha `priceChart` + `rsiChart`
+- **Análise Técnica:** `tech-timeframe-controls` → redesenha os 4 gráficos técnicos
+- **RSI:** `rsi-timeframe-controls` → redesenha apenas o `rsiChart`
+
+Isso permite, por exemplo, visualizar o RSI em 1 Mês enquanto o gráfico principal exibe o histórico Global, ou comparar a Previsão IA em 3 Meses com o Preço Real em 1 Ano.
+
+---
+
+## 4. Análise de Confluência (IA + Notícias) — O Painel Inteligente
+
+Localizado acima do gráfico principal, cruza dois vetores de informação em tempo real:
+
+### 4.1 Vetores de Entrada
+
+| Vetor | Fonte | Threshold de Gatilho |
+|-------|-------|----------------------|
+| **Sinal Matemático (IA)** | Variação % entre preço atual e último alvo XGBoost | > +0.1% = Alta \| < -0.1% = Baixa |
+| **Humor do Mercado (NLP)** | `window.currentSentimentScore` (-1 a +1) | > +0.05 = Otimista \| < -0.05 = Pessimista |
+
+### 4.2 Matriz de Decisão e Sinais
+
+| IA Prevê | Notícias | Sinal | Interpretação |
+|----------|---------|-------|---------------|
+| Alta | Otimistas | 🟢 **COMPRA FORTE** | Confluência total — matemática e sentimento alinhados |
+| Baixa | Pessimistas | 🔴 **VENDA FORTE** | Confluência total — ambos os vetores apontam queda |
+| Alta | Pessimistas | 🟡 **ALERTA DE RISCO** | Divergência — mercado pode contrariar os gráficos por pânico |
+| Baixa | Otimistas | 🟡 **ALERTA DE RISCO** | Divergência — notícias podem ignorar tendência técnica |
+| Neutro | Neutro | ⚪ **SINAL NEUTRO** | Falta de confluência direcional clara |
+
+### 4.3 A Linha Ciano — Projeção Híbrida (IA + Sentimento)
+
+A linha ciano tracejada representa a **Previsão Ajustada pelo Humor do Mercado**. Aparece em dois lugares:
+1. No gráfico `priceChart` (Dashboard Principal)
+2. No gráfico `xgbForecastChart` (Aba Análise Técnica)
+
+**Fórmula de cálculo (frontend):**
+
+```
+ajusteDiario = sentimentScore * 1.5%
+precoAjustado(dia N) = precoXGBoost * (1 + ajusteDiario × N)
+```
+
+O **amplificador visual** garante separação mínima entre as linhas mesmo em sentimentos fracos:
+- Se |score| entre 0.01 e 0.30 → força visualSentiment para ±0.30 para legibilidade
+
+**Cone de risco colorido:**
+- Área verde entre as linhas → sentimento otimista (ciano acima da vermelha)
+- Área vermelha entre as linhas → sentimento pessimista (ciano abaixo da vermelha)
+
+---
+
+## 5. Engenharia de Features e a Padronização (Z-Score)
+
+As colunas alimentadas ao `XGBRegressor` são as responsáveis pelo poder preditivo:
 
 * **Retornos (`ret_1`, `ret_3`, `ret_5`...):** Variação percentual de crescimento em diferentes escalas de pregões.
 * **Retornos Suavizados (`ret_suave_...`):** Variação de tendências contínuas com atenuação dos picos intra-dia.
-* **Médias Móveis (`ma_5`, `ma_10`, `ma_200...`):** Custo de suporte psicológico do mercado em 1 semana, 1 quinzena, e 1 ano letivo respectivamente.
+* **Médias Móveis (`ma_5`, `ma_10`, `ma_200...`):** Custo de suporte psicológico do mercado em 1 semana, 1 quinzena e 1 ano.
 * **Momentum e Razões (`momento_X`, `ratio_ma_X`):** Calculam a velocidade relativa do preço contra as médias temporais.
-* **Volatilidade (`vol_X`):** Instabilidade estatística do preço. Isso ensina ao modelo as diferenças de comportamento de fases de consolidação VS pânicos/euforias.
-* **Dólar (`Dolar_Fechamento`):** Integração macroeconômica.
+* **Volatilidade (`vol_X`):** Instabilidade estatística do preço. Ensina ao modelo a diferença entre fases de consolidação e pânicos/euforias.
+* **Dólar (`Dolar_Fechamento`):** Integração macroeconômica — câmbio influencia ações de bancos.
 
 ### Padronização Z-Score Absoluta e Rolante
-O mercado de 2004 oscilava centavos. O de 2026 oscila reais inteiros diariamente. O modelo de Inteligência Artificial falharia ao tentar treinar com escalas numéricas tão discrepantes.
-A padronização via **Z-Score** resolve isso. A equação `(X - Média) / Desvio Padrão` normaliza a base temporal inteira. Isso garante que altas drásticas absolutas do passado conversem em peso matemático igual a oscilações menores de anos mais estáveis.
+
+O mercado de 2004 oscilava centavos. O de 2026 oscila reais inteiros diariamente. A IA falharia ao tentar treinar com escalas numéricas tão discrepantes.
+
+A padronização via **Z-Score** resolve isso: `(X - Média) / Desvio Padrão` normaliza toda a base temporal, garantindo que oscilações de anos diferentes tenham peso matemático equivalente.
 
 ---
 
-## 5. O Alvo Previsto (Entendimento Categórico)
+## 6. O Alvo Previsto (Entendimento Categórico)
 
 O **Alvo Previsto (Previsão 10 Dias)** é uma variável interpretativa baseada no resultado da matriz final:
 
-1. **Significado Estatístico:** O "Alvo" (exemplo: R$ 38.86) sinalizado no painel indica o valor exato no **último vetor de encerramento do 10º pregão futuro**, segundo a inferência da rede XGBoost.
-2. **Dependência Crítica (MAE):** O Alvo não é uma garantia matemática de cotação exata, é apenas o cerne da curva da parábola de probabilidade. Ele é inseparável do *Erro Médio Absoluto (MAE)*. Um alvo de R$ 38.00 atrelado a um MAE de R$ 1.50 define que a janela de encerramento do 10º pregão futuro reside estatisticamente na *Nuvem de R$ 36.50 a R$ 39.50*.
-3. **Uso Técnico:** Essa inferência atua como a expectativa basilar do robô direcional. Operadores utilizam o alvo em comparação aos limites do oscilador e de fechamento para atestar probabilidades reais de Swing Trades e Position.
+1. **Significado Estatístico:** O "Alvo" (exemplo: R$ 38.86) indica o valor esperado no **último fechamento do 10º pregão futuro**, segundo a inferência XGBoost.
+2. **Dependência Crítica (MAE):** O Alvo não é uma garantia, é o cerne da curva de probabilidade. Um alvo de R$ 38.00 com MAE de R$ 1.50 define uma janela estatística de R$ 36.50 a R$ 39.50.
+3. **Uso Técnico:** Operadores comparam o alvo com os limites do oscilador RSI e de fechamento para estimar probabilidades em Swing Trades e Position.
+
+---
+
+## 7. Interatividade Avançada
+
+### Zoom por Scroll do Mouse
+- Disponível em todos os gráficos (Principal, RSI, 4 gráficos técnicos)
+- Estado de zoom persistente ao expandir gráfico em modal
+- Duplo clique para reset de zoom
+- Zoom centralizado no ponto do cursor (não na borda do gráfico)
+
+### Diário do Analista
+- Textarea com persistência em `localStorage`
+- Cada entrada registra: data/hora, viés (Alta/Baixa/Neutro) e preço atual da ITUB4
+- Timeline cronológica de anotações com opção de exclusão individual
+
+### Retreinamento Dinâmico
+- Seleção de período de treinamento com botões rápidos (1W até Global) ou datas customizadas
+- Exibe estimativa de pregões no período selecionado
+- Ao retreinar, sincroniza automaticamente o período de análise de sentimento
+
+---
+
+*Documentação atualizada — Interligação entre abas, gráficos e Painel de Confluência documentada. Linha Ciano (Previsão Híbrida) presente no Dashboard Principal e na Aba Análise Técnica.*

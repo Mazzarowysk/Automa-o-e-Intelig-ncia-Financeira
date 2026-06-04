@@ -1,153 +1,282 @@
 # Sistema de Inteligência Financeira para ITUB4
-## Documentação Técnica para Apresentação Acadêmica
-
-### 1. Descrição do Algoritmo
-
-#### Objetivo
-Prever a direção e o valor futuro das ações ITUB4 com alta acurácia utilizando dados históricos e indicadores técnicos, fornecendo uma interface interativa e avançada para visualização das previsões.
-
-#### Passos do Algoritmo
-
-1. **Carregamento e Limpeza de Dados**
-   - Carrega o dataset histórico `itub4_historico.csv` contendo preços de abertura, alta, baixa, fechamento e volume.
-   - Remove linhas com valores faltantes e garante a cronologia correta dos dados.
-
-2. **Criação de Características (Features)**
-   - Gera mais de 50 indicadores técnicos incluindo:
-     - Médias Móveis Simples (SMA) e Exponenciais (EMA)
-     - Índice de Força Relativa (RSI)
-     - Bandas de Bollinger e Oscilador Estocástico
-     - MACD (Moving Average Convergence Divergence)
-     - Indicadores de volume (OBV, VWAP)
-     - Diferenças percentuais, lagged features e momentum.
-
-3. **Padronização**
-   - Aplica Z-score (StandardScaler) para normalizar todas as features, garantindo média 0 e desvio padrão 1.
-
-4. **Seleção de Características**
-   - Utiliza técnicas combinadas: Correlação com a variável alvo e Informação Mútua (mutual_info_regression) para capturar relações não lineares.
-   - Seleciona as características mais relevantes para reduzir ruído e overfitting.
-
-5. **Modelagem com XGBoost**
-   - Treina três variantes do modelo XGBoost Regressor (Rápido, Base, Otimizado).
-   - Utiliza `TimeSeriesSplit` para validação cruzada temporal, evitando vazamento de dados futuros.
-
-6. **Avaliação de Desempenho**
-   - Calcula métricas (MAE, RMSE, R² e Acurácia de Direção).
-   - Armazena resultados em `itub4_metricas.json`.
-
-7. **Geração de Previsões Futuras e Projeção Híbrida**
-   - Utiliza o melhor modelo treinado para prever os próximos 10 dias úteis de preços (`itub4_previsoes_finais.csv`).
-   - A previsão puramente matemática é traçada no gráfico em vermelho.
-   - Uma **Projeção Ajustada pelo Sentimento** (linha azul pontilhada) é calculada dinamicamente no frontend: ela desvia a projeção matemática baseando-se no grau de otimismo ou pessimismo atual das notícias da Alpha Vantage.
-
-8. **Dashboard Interativo (HTML/JS/CSS)**
-   - Sistema de visualização próprio, leve e interativo, focado na experiência do usuário (UX).
-   - **Análise de Confluência de Sinais:** Painel dinâmico e inteligente que cruza a tendência da IA (Matemática) com o sentimento NLP (Humano). 
-     - Emite alertas imediatos (Compra Forte, Venda Forte, Alerta de Risco, Neutro).
-     - **Painel Expansível Interativo:** O usuário pode clicar no painel para abrir o **"Raio-X da Confluência"**, revelando detalhes numéricos exatos de alvo de preço, porcentagem de variação e score numérico do sentimento.
-     - **Sensibilidade Refinada:** O limite de gatilho para divergências da IA foi ajustado para maior sensibilidade (0.1%), e a projeção híbrida ciano no gráfico foi escalada para garantir nitidez e separação visual imediata.
-   - Gráficos integrados utilizando **Chart.js** (Preços, Previsões Híbridas, RSI, Médias Móveis).
-   - Funcionalidade avançada de **Zoom com Scroll do Mouse** sincronizada e persistente.
-
-#### Tecnologias Utilizadas
-- **Backend/IA**: Python 3.12, pandas, numpy, scikit-learn, xgboost.
-- **Servidor HTTP**: Servidor local Python (`http.server`) com mecanismo de **Heartbeat** para auto-shutdown.
-- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript, Chart.js, PapaParse (leitura de CSV local).
-- **APIs de Notícias**: Alpha Vantage `NEWS_SENTIMENT` (primária, requer chave gratuita) ou Yahoo Finance via `yfinance` (fallback automático).
-
-### 2. Componentes do Sistema
-
-#### 2.1 Backend e Modelagem
-- `itub4_analise_completa.py`: Orquestra todo o pipeline de machine learning e processamento de dados. Pode receber parâmetros de datas customizadas para retreinamento dinâmico.
-- `servidor.py`: Servidor HTTP com rotas para retreinamento (`/retrain`), sentimento (`/sentiment`), verificação de conexão (`/ping`) e desligamento seguro (`/shutdown`).
-
-#### 2.2 Estrutura de Frontend (Dashboard)
-- `index.html`: Interface com múltiplas abas (Dashboard Principal, Indicadores, Análise Técnica, Previsão IA).
-- `css/style.css`: Estilização responsiva com design moderno "glassmorphism", ícones Font Awesome e modo noturno padrão.
-- `js/main.js`: Lógica de renderização de gráficos, zoom inteligente, filtros de janelas de tempo e mecanismo de **Heartbeat**.
-
-#### 2.3 Mecanismo de Heartbeat (Inovação Técnica)
-- O servidor Python se fecha de modo gracioso e automático caso o usuário feche a janela/aba do navegador.
-- O Frontend (`main.js`) dispara requisições a cada 2 segundos. O backend monitora este pulso de vida. Se passar mais de 4 segundos sem receber um "ping", o Python deduz que a sessão foi finalizada e encerra o processo, fechando automaticamente a janela do terminal.
-
-#### 2.4 Funcionalidade de Zoom e Estado Persistente
-- O sistema conta com recursos avançados de interatividade nos gráficos, permitindo **Zoom através do Scroll do Mouse** (via `chartjs-plugin-zoom`).
-- O estado de zoom é persistente e sincronizado entre visões minimizadas e o painel expandido, garantindo uma análise técnica fluida sem perder o contexto temporal.
-- Controles temporais modulares (1W a 5Y, Global, Personalizado) interagem diretamente com as instâncias dos gráficos.
-
-#### 2.5 Filtros Globais e Períodos Personalizados
-- Em todos os locais onde há recortes temporais (Gráficos, Sentimento, Treinamento da IA), existe a possibilidade de selecionar **Modo Global** (todo histórico) ou **Personalizado** (datas exatas de início e fim).
-- Ao realizar o **Retreinamento do Modelo**, a Análise de Sentimento é automaticamente orientada a adotar as exatas datas escolhidas.
-
-#### 2.6 Análise de Sentimento — Modo Duplo (Alpha Vantage + Fallback VADER)
-
-O sistema opera em **dois modos de análise de sentimento**, selecionados automaticamente:
-
-##### Modo Primário: Alpha Vantage NEWS_SENTIMENT API
-- Ativado quando a chave de API estiver configurada em `config.py`.
-- **Endpoint**: `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=ITUB`
-- **Capacidade**: Até **50 notícias por requisição**, com filtro real de período histórico (`time_from` / `time_to` em formato `YYYYMMDDTHHMM`).
-- **Sentimento pré-calculado**: O score de sentimento por ticker é retornado diretamente pela API (IA da Alpha Vantage), sem necessidade de processamento NLP local.
-- **Escala de score**: -1.0 a +1.0, com thresholds de classificação:
-  - `>= +0.35` → Otimismo Extremo
-  - `>= +0.05` → Otimismo
-  - `> -0.05`  → Neutro
-  - `> -0.35`  → Pessimismo
-  - `<= -0.35` → Pessimismo Extremo
-- **Plano gratuito**: 25 requisições/dia — suficiente para uso diário do dashboard.
-- **Como configurar**: Registre-se em https://www.alphavantage.co/support/#api-key e insira a chave em `config.py`.
-
-##### Modo Fallback: Yahoo Finance + VADER NLP
-- Ativado automaticamente quando `config.py` não existe ou a chave não está preenchida.
-- Busca até ~10 notícias recentes via `yfinance` (limitação da API pública gratuita do Yahoo).
-- Calcula sentimento localmente usando a biblioteca `vaderSentiment` (VADER — Valence Aware Dictionary and sEntiment Reasoner).
-- Filtros históricos funcionam apenas dentro do lote das 10 notícias mais recentes disponíveis.
-
-##### Indicadores Visuais no Dashboard
-- Badge dinâmico mostra a fonte ativa: ✅ **Alpha Vantage** (verde) ou ⚠️ Yahoo Finance (amarelo).
-- Cada card de notícia exibe o **veículo de publicação** (ex: "📰 Benzinga", "📰 Reuters") quando disponível.
-- Contador de notícias atualizado dinamicamente ao mudar o período.
-
-### 3. Arquivos de Dados (CSV / JSON)
-- `itub4_historico.csv`: Histórico bruto importado.
-- `itub4_processado_final.csv`: Histórico processado contendo os novos indicadores técnicos.
-- `itub4_previsoes_finais.csv`: Projeções de 10 dias futuros originadas pelo XGBoost.
-- `itub4_metricas.json`: Base de dados dos resultados de validação cruzada do modelo.
-- `itub4_sentimento.json`: Cache local do último resultado de análise de sentimento.
-
-### 4. Configuração de APIs (`config.py`)
-O arquivo `config.py` (ignorado pelo Git para proteger credenciais) centraliza as chaves de APIs externas:
-
-```python
-# config.py — NÃO COMMITAR
-ALPHA_VANTAGE_KEY = "sua_chave_aqui"
-```
-
-- Um arquivo `config.example.py` é fornecido como template para novos colaboradores.
-- Se `config.py` não existir ou a chave estiver em branco, o sistema usa automaticamente o fallback Yahoo Finance + VADER.
-
-### 5. Fluxo de Operação
-
-1. **Início e Treinamento**
-   - O usuário executa o `start_dashboard.bat`.
-   - O Python gera e avalia as projeções e depois ergue o `servidor.py`.
-
-2. **Interação com a Interface**
-   - O usuário acessa o dashboard. O Javascript coleta os CSVs via PapaParse e pinta os canvas do Chart.js.
-   - O usuário pode aplicar zoom, alterar períodos, analisar osciladores isoladamente (ex: RSI em 1Y) e ler a análise técnica no diário.
-
-3. **Encerramento**
-   - O usuário finaliza sua análise e simplesmente fecha o Chrome.
-   - O servidor intercepta a falha do *heartbeat* em ~4 segundos e finaliza o processo Python.
-   - A janela do terminal (`cmd`) se fecha automaticamente via `exit` no `.bat`.
-
-### 6. Sugestões de Melhoria Futuras
-- **Upgrade Alpha Vantage Premium**: Aumentar de 25 para 75+ requisições/dia para análises mais frequentes.
-- **Integração com WebSocket B3**: Cotações em tempo real para predições de intraday.
-- **Treinamento com Sentimento Histórico**: Incorporar o score de sentimento como feature no XGBoost para correlacionar humor do mercado com movimentações de preço.
-- **Otimização Bayesiana de Hiperparâmetros**: Refino automático do R² do modelo.
-- **Alertas e Notificações**: Envio de e-mail ou push notification quando o modelo previr variação significativa.
+## Documentação Técnica — Versão Atualizada
 
 ---
-*Documentação atualizada — Integração Alpha Vantage NEWS_SENTIMENT implementada com fallback automático para Yahoo Finance + VADER NLP.*
+
+### 1. Visão Geral e Filosofia do Sistema
+
+O dashboard é construído sobre um princípio fundamental: **única fonte de verdade, múltiplas visualizações**.
+
+Todos os gráficos, em todas as abas, partem do mesmo conjunto de dados (`globalData`) e do mesmo estado de sentimento (`window.currentSentimentScore`). Isso garante que, ao mudar o período de sentimento ou retreinar o modelo, **todas as visualizações se atualizam em cascata**, sem inconsistências.
+
+#### Princípio de Interligação
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        DADOS CENTRALIZADOS                       │
+│  globalData.history   →  Histórico de preços e indicadores       │
+│  globalData.predictions → 10 previsões futuras do XGBoost        │
+│  globalData.metrics   →  MAE, RMSE, R², Acurácia Direcional      │
+│  window.currentSentimentScore → Score NLP das notícias (-1 a +1) │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │  Alimenta
+        ┌──────────────────┼───────────────────┐
+        ▼                  ▼                   ▼
+  Aba Principal      Aba Análise Técnica    Aba Previsão IA
+  priceChart         realPriceChart         xgbForecastChart ◄─ Linha Ciano
+  (Histórico +       ma20Chart              predictionPointsChart
+   Linha Ciano)      xgbForecastChart       (todos leem globalData)
+                     predictionPointsChart
+                           │
+                           └──► Painel de Confluência
+                                (cruza IA + Sentimento)
+```
+
+---
+
+### 2. Algoritmo de Machine Learning
+
+#### 2.1 Pipeline de Processamento de Dados
+
+1. **Carregamento e Limpeza**
+   - Carrega `itub4_historico.csv` com preços OHLCV desde 21/12/2000.
+   - Remove valores faltantes e garante cronologia correta.
+
+2. **Engenharia de Features (>50 indicadores)**
+   - Médias Móveis (SMA 20/50/200, EMA 9/21)
+   - RSI (14 períodos), Bandas de Bollinger, Estocástico, MACD
+   - Indicadores de volume (OBV, VWAP)
+   - Diferenças percentuais, lagged features, momentum e Z-Scores
+
+3. **Padronização**
+   - Z-Score (StandardScaler) em todas as features → média 0, desvio padrão 1.
+
+4. **Seleção de Features**
+   - Correlação de Pearson + Informação Mútua (`mutual_info_regression`).
+   - Reduz ruído e overfitting mantendo os preditores mais poderosos.
+
+5. **Modelagem XGBoost**
+   - Três variantes (Rápido, Base, Otimizado) com `TimeSeriesSplit`.
+   - Validação cruzada temporal evita vazamento de dados futuros.
+
+6. **Avaliação**
+   - MAE, RMSE, R² e Acurácia Direcional → `itub4_metricas.json`.
+
+7. **Projeção Futura**
+   - 10 dias úteis projetados → `itub4_previsoes_finais.csv`.
+
+---
+
+### 3. Arquitetura do Frontend — Interligação das Abas
+
+#### 3.1 Estado Global (única fonte de verdade)
+
+O arquivo `js/main.js` mantém dois objetos globais que alimentam **todos** os gráficos simultaneamente:
+
+```javascript
+// Cache de dados — partilhado por TODOS os gráficos
+let globalData = {
+    history: [],       // CSV itub4_processado_final.csv
+    predictions: [],   // CSV itub4_previsoes_finais.csv
+    metrics: {}        // JSON itub4_metricas.json
+};
+
+// Score de sentimento — partilhado pelo painel de confluência e pela Linha Ciano
+window.currentSentimentScore = 0;  // Atualizado por renderSentimentData()
+window.currentSentimentClass  = 'Neutro';
+```
+
+Quando qualquer um destes valores muda (novo sentimento, novo retreinamento), a função `updateConfluencePanel()` é invocada e atualiza:
+- O painel de Confluência de Sinais (badge + descrição)
+- A linha ciano no gráfico principal (`priceChartInstance`)
+- A linha ciano no gráfico técnico (`xgbForecastChartInstance`)
+
+#### 3.2 Gráficos por Aba — O que cada um mostra
+
+| Aba | Gráfico | Dados | Interligação com Sentimento |
+|-----|---------|-------|----------------------------|
+| **Dashboard Principal** | `priceChart` | Histórico real + MM20 + XGBoost histórico + XGBoost futuro (vermelho) + **Linha Ciano** (azul tracejada) | ✅ Atualiza linha ciano via `updateConfluencePanel` |
+| **Dashboard Principal** | `rsiChart` | RSI (14 períodos), zonas 30/70 coloridas | ❌ Indicador técnico puro |
+| **Análise Técnica** | `realPriceChart` | Preço real ITUB4 | ❌ Visualização isolada |
+| **Análise Técnica** | `ma20Chart` | Média Móvel 20 dias | ❌ Visualização isolada |
+| **Análise Técnica** | `xgbForecastChart` | XGBoost histórico + XGBoost futuro (vermelho) + **Linha Ciano** | ✅ Atualiza linha ciano via `updateConfluencePanel` |
+| **Análise Técnica** | `predictionPointsChart` | Pontos de previsão (losangos roxos) + linha de conexão | ❌ Visualização isolada |
+
+#### 3.3 A Linha Ciano — Projeção Híbrida (IA + Sentimento)
+
+A linha azul ciano tracejada representa a **Previsão Ajustada pelo Humor do Mercado**. É calculada no frontend com base matemática simples e transparente:
+
+```javascript
+// Amplificador Visual: garante separação mínima visível entre as linhas
+let visualSentiment = sentimentScore;
+if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+    visualSentiment = sentimentScore > 0 ? 0.3 : -0.3; // mínimo garantido
+}
+
+const ajusteDiario = visualSentiment * 0.015; // 1.5% máx por dia de acumulação
+
+// Para cada dia futuro (1 a 10):
+const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
+const precoAjustado = precoXGBoost * fatorAjuste;
+```
+
+**Leitura visual do Cone de Risco:**
+- Linha **vermelha** acima da ciano → sentimento pessimista (notícias indicam risco de queda além da IA)
+- Linha **ciano** acima da vermelha → sentimento otimista (notícias indicam potencial adicional de alta)
+- A área entre as linhas é colorida (verde = bullish, vermelho = bearish)
+
+**Onde aparece:**
+- Gráfico principal (`priceChart`) — aba Dashboard
+- Gráfico `xgbForecastChart` — aba Análise Técnica
+
+#### 3.4 Painel de Confluência de Sinais
+
+Localizado acima do gráfico principal, cruza dois vetores de informação em tempo real:
+
+| Vetor | Fonte | Threshold |
+|-------|-------|-----------|
+| **Sinal Matemático (IA)** | Variação % entre preço atual e último alvo XGBoost | > +0.1% = Alta / < -0.1% = Baixa |
+| **Humor do Mercado (NLP)** | `window.currentSentimentScore` | > +0.05 = Otimista / < -0.05 = Pessimista |
+
+**Matriz de Decisão:**
+
+| IA | Notícias | Sinal Emitido |
+|----|---------|---------------|
+| Alta | Otimistas | 🟢 **COMPRA FORTE** |
+| Baixa | Pessimistas | 🔴 **VENDA FORTE** |
+| Alta | Pessimistas | 🟡 **ALERTA DE RISCO** |
+| Baixa | Otimistas | 🟡 **ALERTA DE RISCO** |
+| Neutro (qualquer) | Neutro (qualquer) | ⚪ **SINAL NEUTRO** |
+
+O painel é **clicável** e abre o **"Raio-X da Confluência"** com valores numéricos exatos.
+
+---
+
+### 4. Correlações entre Gráficos — O que Muda Juntos
+
+Ao alterar qualquer variável de entrada, os seguintes componentes se atualizam automaticamente:
+
+#### 4.1 Mudar período do Termômetro de Sentimento
+→ `fetchSentimentByPeriod()` → `renderSentimentData()` → atualiza `window.currentSentimentScore` → `updateConfluencePanel()`:
+- Badge do painel de confluência
+- Descrição textual da confluência
+- Linha ciano no `priceChart` (aba Principal)
+- Linha ciano no `xgbForecastChart` (aba Análise Técnica)
+
+#### 4.2 Retreinar o Modelo (novo período de treinamento)
+→ `servidor.py` executa `itub4_analise_completa.py` → gera novos CSVs → `loadChartData()` → `globalData` atualizado → redesenha **todos** os gráficos → `updateConfluencePanel()` re-executa.
+
+#### 4.3 Mudar período temporal dos gráficos
+- Controles `timeframe-controls` (Principal) → `drawCharts()` → redesenha `priceChart` + `rsiChart`
+- Controles `tech-timeframe-controls` (Análise Técnica) → `drawTechCharts()` → redesenha os 4 gráficos técnicos
+- Os controles são **independentes entre abas** (zoom do RSI não afeta o gráfico de preço, por exemplo)
+
+---
+
+### 5. Componentes do Sistema
+
+#### 5.1 Backend e Modelagem
+- `itub4_analise_completa.py`: Pipeline completo de ML. Aceita datas customizadas via argparse para retreinamento dinâmico.
+- `servidor.py`: Servidor HTTP Python com rotas:
+  - `GET /` → serve o dashboard
+  - `POST /retrain` → dispara retreinamento com datas customizadas
+  - `POST /sentiment` → busca notícias por período (Alpha Vantage ou Yahoo)
+  - `GET /ping` → heartbeat do frontend
+  - `POST /shutdown` → encerramento gracioso
+
+#### 5.2 Frontend
+- `index.html`: Interface com 4 seções navegáveis (Dashboard Principal, Indicadores, Análise Técnica, Previsão IA), painel de confluência e termômetro de sentimento.
+- `css/style.css`: Design glassmorphism, dark mode, animações CSS e responsividade.
+- `js/main.js`: Lógica central (~2500 linhas):
+  - Carregamento e parsing de CSV/JSON
+  - Renderização de 6 gráficos Chart.js
+  - Zoom por scroll com estado persistente
+  - Filtros temporais por aba
+  - Heartbeat, modais de detalhe, diário do analista
+  - Painel de confluência e linha híbrida ciano
+
+#### 5.3 Mecanismo de Heartbeat
+O servidor Python auto-encerra (~4s após sem ping) quando o navegador fecha. Implementado com:
+- `setInterval(() => fetch('/ping'), 2000)` no frontend
+- Monitor de última atividade no servidor Python
+
+#### 5.4 Zoom Inteligente e Persistente
+- Zoom via scroll do mouse em todos os gráficos
+- Estado preservado entre minimizado e modal expandido
+- Duplo clique para reset de zoom
+- Controles independentes por aba (RSI tem seu próprio timeframe)
+
+---
+
+### 6. Análise de Sentimento — Modo Duplo
+
+O sistema detecta automaticamente a disponibilidade da chave API e escolhe a melhor fonte:
+
+#### Modo Primário: Alpha Vantage NEWS_SENTIMENT
+- Endpoint: `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=ITUB`
+- Até 50 notícias por requisição com filtro histórico real (`time_from`/`time_to`)
+- Score pré-calculado pela IA da Alpha Vantage (escala -1.0 a +1.0)
+- Thresholds: `≥ +0.05` Otimismo / `≤ -0.05` Pessimismo / entre: Neutro
+- Plano gratuito: 25 requisições/dia
+- Configuração: inserir chave em `config.py` (arquivo ignorado pelo Git)
+
+#### Modo Fallback: Yahoo Finance + VADER NLP
+- ~10 notícias recentes via `yfinance`
+- Processamento NLP local com `vaderSentiment`
+- Indicadores visuais: badge verde (Alpha Vantage) ou amarelo (Yahoo)
+
+---
+
+### 7. Arquivos de Dados
+
+| Arquivo | Conteúdo | Gerado por |
+|---------|----------|------------|
+| `itub4_historico.csv` | OHLCV histórico bruto | Yahoo Finance |
+| `itub4_processado_final.csv` | Histórico + 50+ indicadores técnicos | `itub4_analise_completa.py` |
+| `itub4_previsoes_finais.csv` | 10 dias de previsão XGBoost | `itub4_analise_completa.py` |
+| `itub4_metricas.json` | MAE, RMSE, R², Acurácia | `itub4_analise_completa.py` |
+| `itub4_sentimento.json` | Cache do último sentimento | `servidor.py` |
+| `config.py` | Chave Alpha Vantage (não versionado) | Usuário |
+| `config.example.py` | Template de configuração | Repositório |
+
+---
+
+### 8. Fluxo de Operação
+
+```
+1. start_dashboard.bat
+   └─► Python: itub4_analise_completa.py (treina modelo, gera CSVs)
+   └─► Python: servidor.py (sobe na porta 8000)
+   └─► Chrome: abre http://localhost:8000
+
+2. Frontend inicializa:
+   ├─ loadMetrics()      → lê itub4_metricas.json → KPI cards
+   ├─ loadChartData()    → lê CSVs → globalData → desenha gráficos
+   ├─ setupSentimentFilters() → busca notícias (padrão: 1 semana)
+   │     └─► renderSentimentData() → currentSentimentScore
+   │           └─► updateConfluencePanel() → badge + linha ciano
+   └─ setupTrainingPanel(), setupAnalystDiary(), etc.
+
+3. Usuário interage:
+   ├─ Muda período sentimento → linha ciano atualiza em TODOS os gráficos
+   ├─ Clica em ponto de previsão → modal com detalhes do dia
+   ├─ Retreat modelo → todos os gráficos redesenhados
+   └─ Zoom/filtros → independentes por aba, estado persistente
+
+4. Encerramento:
+   └─ Usuário fecha navegador → heartbeat falha → servidor auto-encerra
+```
+
+---
+
+### 9. Sugestões de Melhoria Futuras
+
+- **Correlação Histórica Sentimento→Preço**: Incorporar `currentSentimentScore` como feature no XGBoost para que o modelo aprenda a correlação histórica entre humor do mercado e variações de preço.
+- **Upgrade Alpha Vantage Premium**: 75+ requisições/dia para análises mais frequentes.
+- **Integração WebSocket B3**: Cotações em tempo real para predições intraday.
+- **Alertas e Notificações**: E-mail ou push notification em variações expressivas.
+- **Otimização Bayesiana de Hiperparâmetros**: Refino automático do R² do modelo.
+- **Histórico de Confluência**: Registrar sinais anteriores (Compra/Venda) para auditoria e backtesting da qualidade das confluências.
+
+---
+*Documentação atualizada — Arquitetura de interligação entre abas e gráficos documentada. Linha Ciano (Previsão Híbrida) implementada no Dashboard Principal e na aba Análise Técnica.*

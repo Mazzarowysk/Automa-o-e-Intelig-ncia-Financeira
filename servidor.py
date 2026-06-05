@@ -39,7 +39,7 @@ def heartbeat_monitor():
     while not SHUTDOWN_FLAG.is_set():
         time.sleep(2)
         elapsed = time.time() - last_ping_time
-        if elapsed > 4:
+        if elapsed > 120:
             print(f"\n[INFO] Navegador fechado ou desconectado (sem ping há {elapsed:.0f}s). Encerrando...")
             os._exit(0)  # Encerramento forçado e imediato — fecha a janela do CMD
 

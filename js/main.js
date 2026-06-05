@@ -1745,7 +1745,7 @@ function drawTechCharts() {
                     fill: false
                 },
                 {
-                    label: 'Ajuste c/ Sentimento Notícias',
+                    label: 'Ajuste Sentimento (Score: ' + window.currentSentimentScore + ')',
                     data: xgbFutureTechAdjusted,
                     borderColor: '#06b6d4',
                     backgroundColor: 'rgba(6, 182, 212, 0.10)',
@@ -1755,11 +1755,7 @@ function drawTechCharts() {
                     spanGaps: true,
                     pointRadius: 0,
                     pointHoverRadius: 6,
-                    fill: {
-                        target: '-1',
-                        above: 'rgba(16, 185, 129, 0.12)',
-                        below: 'rgba(239, 68, 68, 0.12)'
-                    }
+                    fill: false
                 }
             ]
         },

@@ -47,17 +47,18 @@ Ao mudar qualquer parâmetro → `updateConfluencePanel()` propaga para:
 - [x] Dashboard com 4 abas (Principal, Indicadores, Análise Técnica, Previsão IA)
 - [x] Zoom por scroll em todos os gráficos (estado persistente)
 - [x] Controles temporais independentes por aba
-- [x] Análise de sentimento NLP (Alpha Vantage + fallback Yahoo/VADER)
+- [x] Análise de sentimento NLP (Alpha Vantage + fallback Yahoo/VADER) com limiares adaptativos (0.05 e 0.15)
 - [x] Painel de Confluência de Sinais (IA × Notícias) — expansível com Raio-X
 - [x] Linha Ciano (Previsão Híbrida) no Dashboard Principal
 - [x] Linha Ciano (Previsão Híbrida) na Aba Análise Técnica (`xgbForecastChart`)
 - [x] Cone de risco colorido entre linha vermelha e ciano
 - [x] Amplificador visual mínimo (separação garantida ≥ 0.30 de sentimento visual)
 - [x] Retreinamento dinâmico com período customizável
-- [x] Heartbeat (auto-shutdown ao fechar navegador)
+- [x] Heartbeat (auto-shutdown após 120s sem pings do navegador)
 - [x] Diário do Analista com persistência localStorage
 - [x] Modais de detalhe por ponto de previsão (clique no gráfico)
 - [x] Badge dinâmico de fonte de dados (Alpha Vantage vs Yahoo Finance)
+- [x] Modo alternativo com Dashboard Streamlit interativo via Plotly (`--modo-streamlit`)
 
 ---
 
@@ -92,6 +93,4 @@ window.updateConfluencePanel = function() {
 
 Chamada por: `renderSentimentData()` (toda vez que o sentimento muda) e `drawCharts()` (após redesenho dos gráficos).
 
----
-
-*Atualizado em 2026-06-04 — Linha ciano implementada nas duas abas com gráficos. Documentações SYSTEM_DOCUMENTATION.md e documentacao_tecnica.md atualizadas.*
+*Atualizado em 2026-06-05 — Documentação em conformidade com o código: adicionado o modo Streamlit alternativo, corrigido o tempo de heartbeat (120s) e os limiares de sentimento (0.05 e 0.15).*

@@ -72,7 +72,7 @@ Localizado acima do gráfico principal, cruza dois vetores de informação em te
 | Vetor | Fonte | Threshold de Gatilho |
 |-------|-------|----------------------|
 | **Sinal Matemático (IA)** | Variação % entre preço atual e último alvo XGBoost | > +0.1% = Alta \| < -0.1% = Baixa |
-| **Humor do Mercado (NLP)** | `window.currentSentimentScore` (-1 a +1) | > +0.05 = Otimista \| < -0.05 = Pessimista |
+| **Humor do Mercado (NLP)** | `window.currentSentimentScore` (-1 a +1) | > +0.05 (Alpha Vantage) ou > +0.15 (Yahoo/VADER) = Otimista \| < -0.05 (Alpha Vantage) ou < -0.15 (Yahoo/VADER) = Pessimista |
 
 ### 4.2 Matriz de Decisão e Sinais
 
@@ -148,11 +148,18 @@ O **Alvo Previsto (Previsão 10 Dias)** é uma variável interpretativa baseada 
 - Cada entrada registra: data/hora, viés (Alta/Baixa/Neutro) e preço atual da ITUB4
 - Timeline cronológica de anotações com opção de exclusão individual
 
-### Retreinamento Dinâmico
+### Retreinamento Dinâmico e Desligamento
 - Seleção de período de treinamento com botões rápidos (1W até Global) ou datas customizadas
 - Exibe estimativa de pregões no período selecionado
 - Ao retreinar, sincroniza automaticamente o período de análise de sentimento
+- O servidor Python auto-encerra após 120 segundos (2 minutos) sem ping do navegador (mecanismo de heartbeat para estabilidade)
+
+### Modo de Visualização Streamlit Alternativo
+- O script `itub4_analise_completa.py` pode ser executado em modo Streamlit passando a flag `--modo-streamlit`
+- Comando de execução: `python itub4_analise_completa.py --modo-streamlit`
+- Porta padrão: `8501`
+- Apresenta gráficos em Plotly para analisar o histórico de preço, evolução de Z-Scores de padronização, e previsões futuras do XGBoost.
 
 ---
 
-*Documentação atualizada — Interligação entre abas, gráficos e Painel de Confluência documentada. Linha Ciano (Previsão Híbrida) presente no Dashboard Principal e na Aba Análise Técnica.*
+*Documentação atualizada — Interligação entre abas, gráficos, Painel de Confluência e limites de sentimento descritos. Modo Streamlit alternativo e mecanismo de heartbeat de 120s documentados.*

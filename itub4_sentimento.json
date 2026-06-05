@@ -1,12 +1,412 @@
 {
-  "score_medio": 0.0,
-  "classificacao": "Neutro",
-  "noticias": [],
+  "score_medio": 0.1263,
+  "classificacao": "Otimismo",
+  "noticias": [
+    {
+      "titulo": "Eurizon Capital SGR S.p.A. Acquires Shares of 736,872 Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "Eurizon Capital SGR S.p.A. has acquired 736,872 shares of Itau Unibanco Holding S.A. (NYSE:ITUB) worth approximately $5.28 million during the fourth quarter. This acquisition comes as Itau Unibanco missed its Q4 earnings and revenue estimates, reporting EPS of $0.20 against an expected $0.22, and revenue of $9.01 billion versus an anticipated $9.41 billion. Despite the misses, analysts currently rate the stock a \"Moderate Buy\" with an average target price of $9.00, and the company recently declared a special dividend of $0.068 per share.",
+      "score": -0.050489,
+      "data": "02/06/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-eurizon-capital-sgr-spa-acquires-shares-of-736872-itau-unibanco-holding-sa-itub-2026-06-02/"
+    },
+    {
+      "titulo": "Itaú Unibanco Formalizes Executive Removal in May 28 Board Meeting",
+      "resumo": "Itaú Unibanco (ITUB) formalized the removal of executive Luís Eduardo Gross Siqueira Cunha, effective March 31, 2026, during a May 28, 2026 board meeting. The decision was reported in a Form 6-K filing with the U.S. SEC, indicating a change in the bank's executive lineup. Analysts maintain a \"Buy\" rating on ITUB with a $9.00 price target, while TipRanks' AI analyst, Spark, rates it as \"Neutral\" due to financial performance and earnings outlook balanced against technical momentum and financial risks.",
+      "score": 0.023286,
+      "data": "31/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/2216659/itau-unibanco-formalizes-executive-removal-in-may-28-board-meeting/"
+    },
+    {
+      "titulo": "Itaú Unibanco Board Approves Interest on Capital Distribution on May 28, 2026",
+      "resumo": "Itaú Unibanco's board of directors approved the distribution of interest on capital to shareholders, to be paid by August 31, 2026. This distribution will amount to R$0.36188 per share gross, or R$0.298551 net, with the credit recorded on June 29, 2026, for shareholders of record as of June 18, 2026. Analysts currently rate ITUB as a Buy with a $9.00 price target, supported by solid financials and an attractive valuation, despite some technical and financial risks.",
+      "score": 0.416356,
+      "data": "31/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/2216661/itau-unibanco-board-approves-interest-on-capital-distribution-on-may-28-2026/"
+    },
+    {
+      "titulo": "Understanding the Setup: (ITUB) and Scalable Risk",
+      "resumo": "This article analyzes Itau Unibanco Banco Holding Sa (ITUB) using AI models, identifying divergent sentiment and elevated downside risk. It presents three institutional trading strategies—Position Trading, Momentum Breakout, and Risk Hedging—with specific entry, target, and stop-loss levels. The analysis also includes multi-timeframe signal strengths, support, and resistance levels for near-term, mid-term, and long-term horizons.",
+      "score": -0.229806,
+      "data": "30/05/2026",
+      "fonte": "Stock Traders Daily",
+      "link": "https://news.stocktradersdaily.com/news_release/1/Understanding_the_Setup:_ITUB_and_Scalable_Risk_053026043401_1780173241.html"
+    },
+    {
+      "titulo": "Employees Retirement System of Texas Decreases Stock Holdings in Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "The Employees Retirement System of Texas reduced its stake in Itau Unibanco Holding S.A. (NYSE:ITUB) by 49.4% in the fourth quarter, selling over 361,000 shares. Meanwhile, other institutional investors, including Goldman Sachs and Royal Bank of Canada, increased their holdings in the Brazilian bank. Analyst sentiment for ITUB is mixed, with a consensus of \"Moderate Buy\" and an average price target of $9.00.",
+      "score": 0.058525,
+      "data": "28/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-employees-retirement-system-of-texas-decreases-stock-holdings-in-itau-unibanco-holding-sa-itub-2026-05-28/"
+    },
+    {
+      "titulo": "Itau Unibanco Holding S.A. $ITUB Shares Sold by Fisher Asset Management LLC",
+      "resumo": "Fisher Asset Management LLC significantly reduced its stake in Itau Unibanco Holding S.A. (ITUB) by 53.5% in the fourth quarter, selling 32.9 million shares. Despite this, other hedge funds increased their holdings, and analysts maintain a \"Moderate Buy\" rating with an average price target of $9.00. The bank recently reported Q1 earnings below expectations but announced a special dividend of $0.068 per share.",
+      "score": -0.142495,
+      "data": "26/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-itau-unibanco-holding-sa-itub-shares-sold-by-fisher-asset-management-llc-2026-05-26/"
+    },
+    {
+      "titulo": "Itaú Unibanco Holding S.A. 2026 Q1 - Results - Earnings Call Presentation (NYSE:ITUB) 2026-05-25",
+      "resumo": "This article presents the slide deck published by Itaú Unibanco Holding S.A. for their Q1 2026 earnings call, providing investors with direct access to the company's financial results and associated presentation materials. The content is provided by SA Transcripts, a team dedicated to developing and publishing earnings call transcripts on Seeking Alpha.",
+      "score": 0.009666,
+      "data": "25/05/2026",
+      "fonte": "Seeking Alpha",
+      "link": "https://seekingalpha.com/article/4908657-itau-unibanco-holding-s-a-2026-q1-results-earnings-call-presentation"
+    },
+    {
+      "titulo": "William Blair Investment Management LLC Increases Stake in Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "William Blair Investment Management LLC significantly increased its stake in Itau Unibanco Holding S.A. (NYSE:ITUB) by 24% in the fourth quarter, now holding 36.6 million shares valued at approximately $261.7 million. Despite missing recent Q1 earnings estimates, the stock carries a \"Moderate Buy\" consensus rating from analysts, with JPMorgan raising its price target to $9.00. The company also announced a special dividend of $0.068 per share.",
+      "score": 0.017483,
+      "data": "24/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-william-blair-investment-management-llc-increases-stake-in-itau-unibanco-holding-sa-itub-2026-05-24/"
+    },
+    {
+      "titulo": "Itaú Unibanco Discloses GQG Partners’ Trimmed but Still Significant 4.97% Stake",
+      "resumo": "Itaú Unibanco has announced that GQG Partners LLC has reduced its stake in the bank to 4.97% of preferred shares and ADRs through secondary-market disposals. GQG Partners confirmed its intent is purely financial, without seeking control or influence over the bank's management, alleviating potential concerns about governance changes. The article also notes a \"Buy\" rating for ITUB stock with a $9.00 price target, while TipRanks' AI Analyst, Spark, rates it Neutral due to strong financials tempered by weak near-term technical momentum and financial risks.",
+      "score": 0.136693,
+      "data": "23/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/2104316/itau-unibanco-discloses-gqg-partners-trimmed-but-still-significant-4-97-stake/"
+    },
+    {
+      "titulo": "Pzena Investment Management LLC Sells 183,738 Shares of Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "Pzena Investment Management LLC significantly reduced its stake in Itau Unibanco Holding S.A. (NYSE:ITUB) during the fourth quarter, selling 183,738 shares and retaining 225,157 shares valued at approximately $1.61 million. Analyst opinions on Itau Unibanco are mixed, with a \"Moderate Buy\" consensus rating and a $9.00 target price despite the bank missing its Q1 earnings estimates. The company also announced a special dividend of $0.068 per share.",
+      "score": -0.18875,
+      "data": "23/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-pzena-investment-management-llc-sells-183738-shares-of-itau-unibanco-holding-sa-itub-2026-05-23/"
+    },
+    {
+      "titulo": "ABN Amro Investment Solutions Acquires 965,222 Shares of Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "ABN Amro Investment Solutions significantly increased its stake in Itau Unibanco Holding S.A. (NYSE:ITUB) during the fourth quarter, purchasing 965,222 additional shares to bring its total holdings to 1,377,968 shares valued at approximately $9.87 million. Other institutional investors also adjusted their positions in the bank. Despite missing recent quarterly earnings estimates, analysts generally maintain a \"Moderate Buy\" rating for Itau Unibanco with a consensus target price of $9.00.",
+      "score": 0.146521,
+      "data": "22/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-abn-amro-investment-solutions-acquires-965222-shares-of-itau-unibanco-holding-sa-itub-2026-05-22/"
+    },
+    {
+      "titulo": "Itaú Unibanco Q1 2026 slides: profit rises 10% YoY, ROE holds at 25%",
+      "resumo": "Itaú Unibanco reported strong Q1 2026 results with a recurring managerial profit of R$12.3 billion, a 10.4% increase year-over-year, and a robust return on equity (ROE) of 24.8%. The bank saw its credit portfolio expand by 9.0% annually and maintained stable credit quality metrics. Despite a previous quarter's miss, Itaú reaffirmed its full-year 2026 guidance, demonstrating confidence in its financial outlook amidst Brazil's challenging economic environment.",
+      "score": 0.50237,
+      "data": "21/05/2026",
+      "fonte": "Investing.com Nigeria",
+      "link": "https://ng.investing.com/news/company-news/itau-unibanco-q1-2026-slides-profit-rises-10-yoy-roe-holds-at-25-93CH-2486974"
+    },
+    {
+      "titulo": "ITUB Stock Holds Steady As Traders Track Institutional Flows",
+      "resumo": "Itaú Unibanco Banco Holding SA (ITUB) stock is trading up by 3.32% following positive earnings, though it has seen a controlled downtrend in recent weeks. Institutional filings suggest that big money is comfortable holding ITUB, indicating a consolidation phase rather than a panic sell-off. Traders are advised to map key support and resistance levels and wait for increased volume and volatility for new opportunities.",
+      "score": 0.109801,
+      "data": "20/05/2026",
+      "fonte": "www.timothysykes.com",
+      "link": "https://www.timothysykes.com/news/itau-unibanco-banco-holding-sa-itub-news-2026_05_20/"
+    },
+    {
+      "titulo": "Itaú Unibanco stock (BRITUBACNPR7): Latest investor-relevant updates",
+      "resumo": "This article provides an investor-focused update on Itaú Unibanco Holding S.A. (BRITUBACNPR7), highlighting its significance for US investors seeking exposure to Brazil's financial sector. It details the company's core business model, key revenue drivers, and factors to monitor such as earnings releases, capital returns, and credit conditions. The report emphasizes that Itaú Unibanco offers an indirect read on Brazilian banking and economic trends.",
+      "score": 0.278309,
+      "data": "20/05/2026",
+      "fonte": "AD HOC NEWS",
+      "link": "https://www.ad-hoc-news.de/boerse/news/ueberblick/itau-unibanco-stock-britubacnpr7-latest-investor-relevant-updates/69378130"
+    },
+    {
+      "titulo": "The Technical Signals Behind (ITUB) That Institutions Follow",
+      "resumo": "This article analyzes Itau Unibanco Banco Holding Sa (ITUB) using AI-generated technical signals, noting weak near and mid-term sentiment but a strong long-term outlook. It presents three institutional trading strategies—Position, Momentum Breakout, and Risk Hedging—with specific entry, target, and stop-loss levels. The analysis emphasizes risk management and provides multi-timeframe signal insights for traders.",
+      "score": -0.221349,
+      "data": "19/05/2026",
+      "fonte": "Stock Traders Daily",
+      "link": "https://news.stocktradersdaily.com/news_release/9/The_Technical_Signals_Behind_ITUB_That_Institutions_Follow_051926032601_1779218761.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Holding S.A. stock (BRITUBACNPR7): Brazilian lender posts solid Q1 results",
+      "resumo": "Itaú Unibanco Holding S.A. has reported solid first-quarter 2026 results, showing higher recurring profit and expanding loan volumes while maintaining manageable credit quality. The bank's American Depositary Receipts (ADRs) offer US investors diversified exposure to Brazil's financial sector, though performance is influenced by domestic monetary policy, economic growth, and currency fluctuations. Digitalization and cost control remain key strategic focuses for the Latin American banking giant.",
+      "score": 0.427568,
+      "data": "18/05/2026",
+      "fonte": "AD HOC NEWS",
+      "link": "https://www.ad-hoc-news.de/boerse/news/ueberblick/itau-unibanco-holding-s-a-stock-britubacnpr7-brazilian-lender-posts/69360591"
+    },
+    {
+      "titulo": "Itau Unibanco (NYSE: ITUB) amends 13F, reports $4.31B holdings",
+      "resumo": "Itau Unibanco Holding S.A. has amended its Form 13F filing to restate previous disclosures and add new positions, reporting a total market value of $4.31 billion across 400 entries. The amendment indicates that this submission both reprises and adds positions compared to the prior 13F report. The filing was signed by Executive Officer Tatiana Grecco on May 13, 2026, and includes Itau USA Asset Management Inc. as another managed entity.",
+      "score": 0.026622,
+      "data": "17/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/13f-hr-a-itau-unibanco-holding-s-a-sec-filing-b2848d7f847e.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Updates 2024 Reference Form in Latest U.S. Filing",
+      "resumo": "Itaú Unibanco has filed an updated 2024 Reference Form (version 13) with the U.S. SEC, providing enhanced transparency for global investors. The document, dated December 31, 2024, includes detailed information on activities, governance, risk factors, and capital markets. Itau Unibanco stock (ITUB) currently holds a Buy rating with a $9.00 price target, and TipRanks' AI Analyst, Spark, rates it as \"Neutral\" due to solid financial performance and attractive valuation, tempered by technical momentum and financial risks.",
+      "score": 0.407306,
+      "data": "14/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/markets-news/Tipranks/1938729/itau-unibanco-updates-2024-reference-form-in-latest-u-s-filing/"
+    },
+    {
+      "titulo": "WIM INVESTMENT MANAGEMENT Ltd Raises Stock Holdings in Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "WIM INVESTMENT MANAGEMENT Ltd significantly increased its stake in Itau Unibanco Holding S.A. (NYSE:ITUB) by 81.2% in the fourth quarter, bringing its total holdings to 1.737 million shares valued at $12.4 million. Other institutional investors like Goldman Sachs and Royal Bank of Canada also raised their positions, indicating growing interest in the stock. Despite this, analysts have mixed views, with Zacks downgrading the stock to \"Hold,\" while JPMorgan Chase & Co. maintained an \"Overweight\" rating and raised its price target to $9.00.",
+      "score": 0.074617,
+      "data": "14/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-wim-investment-management-ltd-raises-stock-holdings-in-itau-unibanco-holding-sa-itub-2026-05-14/"
+    },
+    {
+      "titulo": "Loan losses (actual) of Itau Unibanco Holding S.A. – BMFBOVESPA:ITUB3",
+      "resumo": "This article provides financial data on the actual loan losses of Itau Unibanco Holding S.A., identified by the stock symbol BMFBOVESPA:ITUB3. The content is primarily a listing of financial data without detailed textual analysis. It highlights the period, value, and percentage change of these loan losses.",
+      "score": 0.009196,
+      "data": "13/05/2026",
+      "fonte": "TradingView",
+      "link": "https://www.tradingview.com/symbols/BMFBOVESPA-ITUB3/financials-balance-sheet/loan-losses-act/"
+    },
+    {
+      "titulo": "ITUB Stock Slips As Traders Eye Key Support Levels",
+      "resumo": "Itau Unibanco Banco Holding SA (ITUB) stock is slipping, trading down by over 3%, amid investor concerns about Brazil's economic outlook. While the stock has pulled back from late-April highs, intraday trading shows consolidation around $8, suggesting indecision among traders. Analysts highlight ITUB's modest valuation, massive asset base, and strong deposit base, but caution that its leverage and sensitivity to credit cycles are keeping risk on the radar for investors.",
+      "score": -0.201954,
+      "data": "13/05/2026",
+      "fonte": "StocksToTrade",
+      "link": "https://stockstotrade.com/news/itau-unibanco-banco-holding-sa-itub-news-2026_05_13/"
+    },
+    {
+      "titulo": "Itaú Unibanco Updates 2024 Reference Form in Latest U.S. Filing",
+      "resumo": "Itaú Unibanco (ITUB) has filed an updated 2024 Reference Form (version 13) with the U.S. markets on May 8, 2026, consolidating regulatory disclosures for investors. This document, based on information as of December 31, 2024, includes details on activities, governance, risk factors, and capital structure. The resubmission on August 5, 2026, features revisions to enhance transparency for global stakeholders, while TipRanks' AI Analyst \"Spark\" rates ITUB as Neutral due to solid financials offset by weak technical momentum and financial risks.",
+      "score": 0.345476,
+      "data": "13/05/2026",
+      "fonte": "TipRanks",
+      "link": "https://www.tipranks.com/news/company-announcements/itau-unibanco-updates-2024-reference-form-in-latest-u-s-filing"
+    },
+    {
+      "titulo": "Net loan losses of Itau Unibanco Holding S.A. – BMFBOVESPA:ITUB3F",
+      "resumo": "The article provides financial information for Itau Unibanco Holding S.A. (BMFBOVESPA:ITUB3F), specifically focusing on its net loan losses. It appears to be a financial data snippet from TradingView, displaying key metrics and historical changes for the company.",
+      "score": 0.018455,
+      "data": "13/05/2026",
+      "fonte": "TradingView",
+      "link": "https://www.tradingview.com/symbols/BMFBOVESPA-ITUB3F/financials-balance-sheet/loan-losses-net/"
+    },
+    {
+      "titulo": "ITAÚ UNIBANCO - Material Fact: News Portal Change",
+      "resumo": "Itaú Unibanco (ITUB) has issued a Material Fact regarding a change in its news portal. Quantisnow alerted its Plus members about this announcement shortly after its publication, highlighting the platform's real-time market data and news services for retail investors. The article also mentions recent insider transactions by directors of Itau Unibanco.",
+      "score": 0.137506,
+      "data": "12/05/2026",
+      "fonte": "Quantisnow",
+      "link": "https://www.quantisnow.com/insight/ita-unibanco---material-fact-news-portal-change-6541191"
+    },
+    {
+      "titulo": "Director at Itau Unibanco (NYSE: ITUB) receives new preferred share grant",
+      "resumo": "Itau Unibanco Holding S.A. director Pedro Luiz Bodin de Moraes has been granted 20,998 preferred shares (ITUB4) on May 8, 2026, at no reported cost. This transaction increased his direct holding of preferred shares to 724,792. The filing indicates a neutral impact and sentiment regarding this insider trading activity.",
+      "score": 0.12286,
+      "data": "12/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/form-4-itau-unibanco-holding-s-a-insider-trading-activity-ca62aee9068d.html"
+    },
+    {
+      "titulo": "First Eagle Investment Management LLC Has $20.01 Million Stake in Itau Unibanco Holding S.A. $ITUB",
+      "resumo": "First Eagle Investment Management LLC has increased its stake in Itau Unibanco Holding S.A. to $20.01 million, acquiring an additional 302,668 shares in the fourth quarter. Other hedge funds have also adjusted their positions in the bank. Despite missing quarterly earnings and revenue estimates, analysts maintain a \"Moderate Buy\" rating for Itau Unibanco, with an average price target of $9.00.",
+      "score": -0.101611,
+      "data": "12/05/2026",
+      "fonte": "MarketBeat",
+      "link": "https://www.marketbeat.com/instant-alerts/filing-first-eagle-investment-management-llc-has-2001-million-stake-in-itau-unibanco-holding-sa-itub-2026-05-12/"
+    },
+    {
+      "titulo": "[Form 4] Itau Unibanco Holding S.A. Insider Trading Activity",
+      "resumo": "A recently filed Form 4 indicates insider trading activity for Itau Unibanco Holding S.A. (ITUB). Director Pedro Moreira Salles reported receiving a compensation-related award of 75,923 preferred shares (ITUB4) at no cost. Following this transaction, he directly holds over 12 million preferred shares and over 13 million common shares, with additional indirect holdings through a controlled entity and his spouse.",
+      "score": 0.058435,
+      "data": "12/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/form-4-itau-unibanco-holding-s-a-insider-trading-activity-f29d65a2ef0b.html"
+    },
+    {
+      "titulo": "Itau Unibanco (ITUB) director receives 48,460 preferred shares in equity award",
+      "resumo": "Marino Ricardo Villela, a director at Itau Unibanco Holding S.A. (ITUB), received an equity award of 48,460 preferred shares (ITUB4) on May 8, 2026, at no cost. This transaction, reported via a Form 4 filing, is a grant and not an open-market purchase. After this award, his direct preferred share holdings increased to 248,758, and he also holds substantial indirect preferred and common shares, though he disclaims beneficial ownership for some of these except for his pecuniary interest.",
+      "score": 0.031601,
+      "data": "11/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/form-4-itau-unibanco-holding-s-a-insider-trading-activity-f7466819a26d.html"
+    },
+    {
+      "titulo": "Itau Unibanco (ITUB) director Marcos Lutz granted 20,998 preferred shares",
+      "resumo": "Itau Unibanco (ITUB) director Marcos M. Lutz was granted 20,998 preferred shares (ITUB4) on May 8, 2026, at no cost, as part of a compensation-related award. Following this transaction, he directly holds 51,503 preferred shares. This information was reported in a Form 4 filing, indicating an acquisition rather than an open-market purchase.",
+      "score": 0.109502,
+      "data": "11/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/form-4-itau-unibanco-holding-s-a-insider-trading-activity-44e4b0537f07.html"
+    },
+    {
+      "titulo": "Itaú Unibanco (NYSE: ITUB) earns R$11.9B net income in Q1 2026",
+      "resumo": "Itaú Unibanco Holding S.A. reported a net income of R$11.9 billion for Q1 2026, marking a 10.9% increase year-over-year, with a recurring return on average equity of 22.9%. Despite an 8.0% decline in net interest income, primarily due to lower results from repurchase agreements and foreign exchange, the bank's credit portfolio expanded to R$1.5 trillion, and expected credit loss from financial assets decreased by 5.8%. The bank also approved R$3.85 billion in interest on capital for shareholders and maintained a comfortable Tier 1 capital ratio of 13.4%.",
+      "score": 0.424477,
+      "data": "11/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/6-k-itau-unibanco-holding-s-a-current-report-foreign-issuer-56d1831646ad.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Holding S.A. stock (BRITUBACNPR7): Shares ease after cautious outlook on Brazilian banking margins",
+      "resumo": "Itaú Unibanco Holding S.A. shares have recently slipped due to investor caution regarding Brazilian banking margins and a broader macroeconomic backdrop, with the stock trading in the low $8s on the NYSE. Despite this short-term pressure, Itaú Unibanco remains a major and diversified player in Brazil's financial sector, offering a range of services including lending, payments, insurance, and wealth management. Its performance will continue to be influenced by domestic interest rates, credit quality, and regulatory changes, making it an avenue for US investors seeking exposure to Brazil's banking system.",
+      "score": -0.340842,
+      "data": "10/05/2026",
+      "fonte": "AD HOC NEWS",
+      "link": "https://www.ad-hoc-news.de/boerse/news/ueberblick/itau-unibanco-holding-s-a-stock-britubacnpr7-shares-ease-after/69300302"
+    },
+    {
+      "titulo": "Itaú Unibanco Shifts Material Disclosures to New News Portal",
+      "resumo": "Itaú Unibanco Holding S.A. has announced a change in its online news portal for disclosing material acts and facts to the market, moving these communications to a freely accessible section of the MZ Group website. This operational adjustment, effective May 8, 2026, aims to maintain regulatory compliance and ensure consistent access to information for investors and stakeholders. The bank also resubmitted its Registration Form and Disclosure Policy to reflect the new channel, underscoring its commitment to timely and organized communication.",
+      "score": 0.339966,
+      "data": "10/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/1827617/itau-unibanco-shifts-material-disclosures-to-new-news-portal/"
+    },
+    {
+      "titulo": "Itaú Unibanco Updates Global Policy on Disclosure of Material Information",
+      "resumo": "Itaú Unibanco has updated its global Policy for the Disclosure of Material Acts or Facts to align with Brazil’s CVM Resolution No. 44. This revised policy aims to strengthen governance and investor confidence by defining material information, mandating timely disclosure, and setting clear responsibilities for its Investor Relations Officer and a Disclosure and Trading Committee. The update includes detailed examples of events that require disclosure, ranging from M&A to significant legal proceedings, reinforcing confidentiality and response procedures.",
+      "score": 0.433158,
+      "data": "09/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/1827928/itau-unibanco-updates-global-policy-on-disclosure-of-material-information/"
+    },
+    {
+      "titulo": "Itaú Unibanco Holding S.A. 2026 Q1 - Results - Earnings Call Presentation (NYSE:ITUB) 2026-05-08",
+      "resumo": "Itaú Unibanco Holding S.A. (NYSE:ITUB) published its Q1 2026 earnings call presentation, reporting an EPS of $0.23, beating estimates by $0.01, and revenue of $9.51 billion, which was up 19.59% year-over-year and beat estimates by $153.55 million. The article highlights that the slide deck was released in conjunction with their earnings call.",
+      "score": 0.41865,
+      "data": "08/05/2026",
+      "fonte": "Seeking Alpha",
+      "link": "https://seekingalpha.com/article/4901819-itau-unibanco-holding-s-a-2026-q1-results-earnings-call-presentation"
+    },
+    {
+      "titulo": "Itaú Unibanco Reports Strong Q1 2026 Capital and Risk Metrics in Pillar 3 Disclosure",
+      "resumo": "Itaú Unibanco has released its Q1 2026 \"Risk and Capital Management – Pillar 3\" report, demonstrating strong capital ratios well above regulatory minimums, including a Total Capital ratio of 14.8% and a Common Equity Tier 1 of 12.0%. The bank's capital of R$230.5 billion supports R$1.56 trillion in risk-weighted assets, reflecting disciplined capital management. Analysts maintain a Buy rating on ITUB stock with a $9.00 price target, and TipRanks' AI Analyst issues an \"Outperform\" rating due to solid financial performance despite leverage and cash-flow volatility.",
+      "score": 0.436604,
+      "data": "08/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/markets-news/Tipranks/1810431/itau-unibanco-reports-strong-q1-2026-capital-and-risk-metrics-in-pillar-3-disclosure/"
+    },
+    {
+      "titulo": "Savings deposits to total deposits of Itau Unibanco Holding S.A. – BMFBOVESPA:ITUB3",
+      "resumo": "This article provides financial data on the savings deposits to total deposits ratio for Itau Unibanco Holding S.A., traded under the ticker BMFBOVESPA:ITUB3. It highlights the company's financial overview within the context of major banks in Brazil and notes the market is currently closed. The content is primarily a data point with no further editorial analysis.",
+      "score": 0.037669,
+      "data": "08/05/2026",
+      "fonte": "TradingView",
+      "link": "https://www.tradingview.com/symbols/BMFBOVESPA-ITUB3/financials-statistics-and-ratios/savings-time-deposits-total-deposits/"
+    },
+    {
+      "titulo": "Precision Trading with Itau Unibanco Banco Holding Sa American Depositary Shares (each Repstg 500 Preferred Shares) (ITUB) Risk Zones",
+      "resumo": "This article analyzes Itau Unibanco Banco Holding Sa (ITUB) using AI models to provide precision trading risk zones. It highlights weak near and mid-term sentiment but a strong long-term outlook, with specific trading strategies including entry and stop-loss zones for position, momentum, and risk-hedging approaches. The analysis emphasizes a significant risk-reward short setup and multi-timeframe signal insights.",
+      "score": -0.406888,
+      "data": "08/05/2026",
+      "fonte": "Stock Traders Daily",
+      "link": "https://news.stocktradersdaily.com/news_release/11/Precision_Trading_with_Itau_Unibanco_Banco_Holding_Sa_American_Depositary_Shares_each_Repstg_500_Preferred_Shares_ITUB_Risk_Zones_050826021802_1778264282.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Updates Global Policy on Disclosure of Material Information",
+      "resumo": "Itaú Unibanco has updated its global policy for the disclosure of material information, aligning it with Brazil's CVM Resolution No. 44. This update clarifies the definition of material events, ensures timely and equal disclosure across all markets, and outlines responsibilities for insiders and a new Disclosure and Trading Committee. The policy aims to enhance transparency, governance, and investor confidence in Itaú Unibanco's information practices.",
+      "score": 0.44354,
+      "data": "08/05/2026",
+      "fonte": "TipRanks",
+      "link": "https://www.tipranks.com/news/company-announcements/itau-unibanco-updates-global-policy-on-disclosure-of-material-information"
+    },
+    {
+      "titulo": "Itaú Unibanco Shifts Material Disclosures to New News Portal",
+      "resumo": "Itaú Unibanco has announced a change in how it discloses material acts and facts to the market, moving these communications to a new, freely accessible news portal operated by MZ Group. This operational adjustment, made on May 8, 2026, ensures regulatory compliance and consistent information access for investors. The bank has also resubmitted its registration and disclosure policies to reflect this new communication channel.",
+      "score": 0.420945,
+      "data": "08/05/2026",
+      "fonte": "TipRanks",
+      "link": "https://www.tipranks.com/news/company-announcements/itau-unibanco-shifts-material-disclosures-to-new-news-portal"
+    },
+    {
+      "titulo": "Loan loss coverage ratio of Itau Unibanco Holding S.A. – BMFBOVESPA:ITUB3F",
+      "resumo": "This article provides the loan loss coverage ratio for Itau Unibanco Holding S.A. (BMFBOVESPA:ITUB3F). It presents financial data related to this metric, indicating the bank's provision for potential loan defaults. The content is hosted on TradingView, a platform for market data and analysis.",
+      "score": 0.04326,
+      "data": "08/05/2026",
+      "fonte": "TradingView",
+      "link": "https://www.tradingview.com/symbols/BMFBOVESPA-ITUB3F/financials-statistics-and-ratios/loan-loss-coverage/"
+    },
+    {
+      "titulo": "ITAÚ UNIBANCO - Material Fact: News Portal Change",
+      "resumo": "Itaú Unibanco Holding S.A. has announced a change in its news portal for disclosing material acts and facts, moving to https://mzgroup.com.br/fatos-relevantes/. The company has updated its Registration Form and Disclosure Policy to reflect this change. Shareholders and the market can access past and future disclosures through this new platform.",
+      "score": 0.029956,
+      "data": "08/05/2026",
+      "fonte": "PR Newswire",
+      "link": "https://www.prnewswire.com/news-releases/itau-unibanco---material-fact-news-portal-change-302766917.html"
+    },
+    {
+      "titulo": "Investors now need a new link for Itaú Unibanco material facts",
+      "resumo": "Itaú Unibanco (NYSE: ITUB) announced a change in its official news portal for disclosure of material acts and facts to \"https://mzgroup.com.br/fatos-relevantes/\", which includes a free-access section. The company also updated its Registration Form and Disclosure Policy to reflect this change. This move is seen as an increased emphasis on transparency for investors.",
+      "score": 0.027357,
+      "data": "08/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/news/ITUB/itau-unibanco-material-fact-news-portal-5w1zyqdba6x1.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Holding S.A. stock (BRITUBACNPR7): Q1 profit up on higher recurring earnings and net",
+      "resumo": "Itaú Unibanco Holding S.A. reported a strong first quarter in 2026, with recurring managerial results increasing by 10.4% year-on-year to R$12.3 billion, driven by higher net interest income and robust loan growth in Brazil. The bank's diversified business model, digital transformation efforts, and dividend-paying profile make it an attractive option for US investors seeking exposure to the Brazilian financial sector, despite inherent risks associated with currency fluctuations and macroeconomic conditions in emerging markets.",
+      "score": 0.011023,
+      "data": "08/05/2026",
+      "fonte": "AD HOC NEWS",
+      "link": "https://www.ad-hoc-news.de/boerse/news/ueberblick/itau-unibanco-holding-s-a-stock-britubacnpr7-q1-profit-up-on-higher/69291642"
+    },
+    {
+      "titulo": "Strong Q1 2026 capital and liquidity at Itaú Unibanco (NYSE: ITUB)",
+      "resumo": "Itaú Unibanco (NYSE: ITUB) reported strong capital and liquidity metrics for Q1 2026, including a Common Equity Tier 1 ratio of 12.0% and a total capital ratio of 14.8%, both well above regulatory minimums. The bank showcased robust liquidity with a Liquidity Coverage Ratio of 195.1% and a Net Stable Funding Ratio of 122.0%, along with a Basel III leverage ratio of 6.5%. The report highlights the bank's comprehensive risk management framework, covering various types of financial risks, and its adherence to international and national regulatory standards.",
+      "score": 0.498022,
+      "data": "08/05/2026",
+      "fonte": "Stock Titan",
+      "link": "https://www.stocktitan.net/sec-filings/ITUB/6-k-itau-unibanco-holding-s-a-current-report-foreign-issuer-ff3758a3e8eb.html"
+    },
+    {
+      "titulo": "ITUB Stock Slides Toward Support As Momentum Fades",
+      "resumo": "Itau Unibanco Banco Holding SA (ITUB) stock has been trading down by 3.02% due to a cautious outlook on Brazilian banking margins. The article highlights a steady pullback in ITUB's price from the $9s to the low $8s, with the stock currently consolidating in a tight range and indecision among traders. While ITUB is a large bank with significant revenue, its valuation ratios suggest it is no longer deeply discounted, making technical levels and price action critical for short-term traders.",
+      "score": -0.235038,
+      "data": "07/05/2026",
+      "fonte": "StocksToTrade",
+      "link": "https://stockstotrade.com/news/itau-unibanco-banco-holding-sa-itub-news-2026_05_07/"
+    },
+    {
+      "titulo": "Itaú Unibanco Reports Strong Q1 2026 Capital and Risk Metrics in Pillar 3 Disclosure",
+      "resumo": "Itaú Unibanco filed its Q1 2026 Pillar 3 report on May 5, 2026, showcasing strong capital ratios that exceed regulatory minimums, including a Total Capital ratio of 14.8%. This performance is maintained despite shareholder payouts and risk-weighted asset growth, indicating disciplined capital management. TipRanks' AI Analyst, Spark, rates ITUB as \"Outperform\" due to solid financial performance and a favorable valuation.",
+      "score": 0.423881,
+      "data": "07/05/2026",
+      "fonte": "TipRanks",
+      "link": "https://www.tipranks.com/news/company-announcements/itau-unibanco-reports-strong-q1-2026-capital-and-risk-metrics-in-pillar-3-disclosure"
+    },
+    {
+      "titulo": "EDGAR Filing Documents for 0001132597-26-000141",
+      "resumo": "This article provides details of an EDGAR filing, Form 6-K, by Itau Unibanco Holding S.A. The filing, with accession number 0001132597-26-000141, was filed on May 4, 2026, and accepted on May 1, 2026. It includes various documents, including the 6-K report itself and several graphic exhibits.",
+      "score": 0.001516,
+      "data": "07/05/2026",
+      "fonte": "SEC.gov",
+      "link": "https://www.sec.gov/Archives/edgar/data/1132597/000113259726000141/0001132597-26-000141-index.html"
+    },
+    {
+      "titulo": "Itaú Unibanco Board Clears Q1 2026 Results With Unqualified Audit Opinion",
+      "resumo": "Itaú Unibanco's Board of Directors has approved the bank's financial statements for the first quarter of 2026, which included a favorable opinion from the Supervisory Council and an unqualified report from independent auditors. This approval reinforces the bank's credibility and compliance, particularly for investors in its domestic and international markets. Analysts currently rate ITUB as a Buy with a $9.00 price target, and TipRanks' AI analyst, Spark, gives it an \"Outperform\" rating due to solid financial performance, favorable valuation, and a strong uptrend.",
+      "score": 0.61287,
+      "data": "07/05/2026",
+      "fonte": "The Globe and Mail",
+      "link": "https://www.theglobeandmail.com/investing/markets/markets-news/Tipranks/1773369/itau-unibanco-board-clears-q1-2026-results-with-unqualified-audit-opinion/"
+    },
+    {
+      "titulo": "Itaú Unibanco Earnings: Solid Loan Growth Supports Strong Net Income Growth; Shares Expensive",
+      "resumo": "Itaú Unibanco reported strong first-quarter earnings, with net income rising 9.5% to BRL 11.9 billion, resulting in an excellent return on average equity of 24.8%. This performance was driven by solid loan growth, although the shares are currently considered expensive.",
+      "score": 0.314541,
+      "data": "07/05/2026",
+      "fonte": "Morningstar",
+      "link": "https://www.morningstar.com/company-reports/1479901-ita-unibanco-earnings-solid-loan-growth-supports-strong-net-income-growth-shares-expensive"
+    },
+    {
+      "titulo": "EDGAR Filing Documents for 0001132597-26-000113",
+      "resumo": "This page provides access to the EDGAR filing documents for Itau Unibanco Holding S.A., specifically a Form 6-K report. The filing includes the report itself and several exhibits, primarily related to bylaws. Details like the SEC Accession No., Filing Date, and the company's contact information are also presented.",
+      "score": 0.048891,
+      "data": "07/05/2026",
+      "fonte": "SEC.gov",
+      "link": "https://www.sec.gov/Archives/edgar/data/1132597/000113259726000113/0001132597-26-000113-index.htm"
+    }
+  ],
   "periodo": {
-    "inicio": "2026-05-28",
-    "fim": "2026-06-04"
+    "inicio": "2025-12-07",
+    "fim": "2026-06-06"
   },
   "fonte": "Alpha Vantage",
-  "atualizado_em": "2026-06-04 11:50:10",
-  "erro": "Limite da API atingido: We have detected your API key as 1IZ0U9QHYC3TQVE8 and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits."
+  "atualizado_em": "2026-06-05 11:22:33"
 }

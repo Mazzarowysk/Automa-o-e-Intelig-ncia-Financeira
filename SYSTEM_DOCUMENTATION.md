@@ -196,9 +196,9 @@ Ao alterar qualquer variável de entrada, os seguintes componentes se atualizam 
   - Painel de confluência e linha híbrida ciano
 
 #### 5.3 Mecanismo de Heartbeat
-O servidor Python auto-encerra (~4s após sem ping) quando o navegador fecha. Implementado com:
+O servidor Python auto-encerra após 120 segundos (2 minutos) sem receber pings do navegador (evitando desligamentos acidentais durante recarregamentos). Implementado com:
 - `setInterval(() => fetch('/ping'), 2000)` no frontend
-- Monitor de última atividade no servidor Python
+- Monitor de última atividade no servidor Python (`elapsed > 120` em `servidor.py`)
 
 #### 5.4 Zoom Inteligente e Persistente
 - Zoom via scroll do mouse em todos os gráficos
@@ -208,22 +208,32 @@ O servidor Python auto-encerra (~4s após sem ping) quando o navegador fecha. Im
 
 ---
 
-### 6. Análise de Sentimento — Modo Duplo
+### 6. Análise de Sentimento — Modo Duplo e Limiares
 
-O sistema detecta automaticamente a disponibilidade da chave API e escolhe a melhor fonte:
+O sistema detecta automaticamente a disponibilidade da chave API e escolhe a melhor fonte, aplicando limiares de decisão (thresholds) específicos para cada uma no frontend e backend:
 
 #### Modo Primário: Alpha Vantage NEWS_SENTIMENT
 - Endpoint: `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=ITUB`
 - Até 50 notícias por requisição com filtro histórico real (`time_from`/`time_to`)
 - Score pré-calculado pela IA da Alpha Vantage (escala -1.0 a +1.0)
-- Thresholds: `≥ +0.05` Otimismo / `≤ -0.05` Pessimismo / entre: Neutro
+- Thresholds de Sentimento: `≥ +0.05` Otimismo / `≤ -0.05` Pessimismo / entre: Neutro
 - Plano gratuito: 25 requisições/dia
 - Configuração: inserir chave em `config.py` (arquivo ignorado pelo Git)
 
 #### Modo Fallback: Yahoo Finance + VADER NLP
 - ~10 notícias recentes via `yfinance`
 - Processamento NLP local com `vaderSentiment`
+- Thresholds de Sentimento: `≥ +0.15` Otimismo / `≤ -0.15` Pessimismo (escala do VADER adaptada no frontend e backend)
 - Indicadores visuais: badge verde (Alpha Vantage) ou amarelo (Yahoo)
+
+---
+
+### 6.1 Modo Alternativo: Dashboard Streamlit
+
+Além do frontend principal em HTML/CSS/JS servido por `servidor.py`, o script de processamento `itub4_analise_completa.py` possui um modo de visualização alternativo e independente utilizando a biblioteca **Streamlit**.
+- Execução: `python itub4_analise_completa.py --modo-streamlit`
+- Porta padrão: `8501`
+- Recursos: Exibição interativa com Plotly de preços históricos, evolução de Z-Scores de padronização, e previsões do XGBoost.
 
 ---
 

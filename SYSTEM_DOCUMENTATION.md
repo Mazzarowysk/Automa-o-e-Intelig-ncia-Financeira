@@ -148,7 +148,7 @@ Localizado acima do gráfico principal, cruza dois vetores de informação em te
 | Baixa | Otimistas | 🟡 **ALERTA DE RISCO** |
 | Neutro (qualquer) | Neutro (qualquer) | ⚪ **SINAL NEUTRO** |
 
-O painel é **clicável** e abre o **"Raio-X da Confluência"** com valores numéricos exatos.
+O painel é **clicável** e abre o **"Raio-X da Confluência"** com valores numéricos exatos. Os indicadores contidos no Raio-X ("Sinal Matemático (IA)" e "Humor do Mercado (Notícias)") possuem um ícone de ajuda (sinal de interrogação) que mostra uma descrição detalhada de seu significado ao posicionar o cursor do mouse.
 
 ---
 

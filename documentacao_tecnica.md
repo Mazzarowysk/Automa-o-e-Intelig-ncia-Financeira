@@ -84,7 +84,13 @@ Localizado acima do gráfico principal, cruza dois vetores de informação em te
 | Baixa | Otimistas | 🟡 **ALERTA DE RISCO** | Divergência — notícias podem ignorar tendência técnica |
 | Neutro | Neutro | ⚪ **SINAL NEUTRO** | Falta de confluência direcional clara |
 
-### 4.3 A Linha Ciano — Projeção Híbrida (IA + Sentimento)
+### 4.3 O Raio-X da Confluência e Dicas de Ajuda (Tooltips)
+
+Ao clicar no painel de confluência, abre-se o painel expansível **"Raio-X da Confluência"**, que detalha os dois pilares analíticos. Para facilitar a compreensão do usuário, foram adicionados ícones de ajuda interativos (sinal de interrogação) que exibem descrições no hover:
+- **Sinal Matemático (IA):** Informa a tendência direcional calculada pela IA (XGBoost) comparando a projeção futura com o preço de fechamento atual.
+- **Humor do Mercado (Notícias):** Explica a pontuação de sentimento (otimista, pessimista ou neutro) extraído das últimas notícias através de Processamento de Linguagem Natural (NLP).
+
+### 4.4 A Linha Ciano — Projeção Híbrida (IA + Sentimento)
 
 A linha ciano tracejada representa a **Previsão Ajustada pelo Humor do Mercado**. Aparece em dois lugares:
 1. No gráfico `priceChart` (Dashboard Principal)

@@ -8,7 +8,7 @@ Este documento detalha o funcionamento interno, as métricas de interface e a ar
 
 O ecossistema do painel "ITUB4 Quantum" foi construído mesclando três grandes frentes:
 
-1. **Pipeline de Dados Macro e Micro:** Através das bibliotecas `yfinance` e de comunicação HTTP com a API do Banco Central (SGS do BCB), o sistema une os dados de pregões do Itaú (Abertura, Máxima, Mínima, Fechamento e Volume) à oscilação da taxa de câmbio diária. Os dados são carregados no arquivo *itub4_historico.csv*.
+1. **Pipeline de Dados Macro e Micro:** Através das bibliotecas `yfinance` e de comunicação HTTP com a API do Banco Central (SGS do BCB), o sistema une os dados de pregões do Itaú (Abertura, Máxima, Mínima, Fechamento e Volume) à oscilação da taxa de câmbio diária. Os dados são carregados no arquivo *itub4_historico.csv*. Para garantir a integridade dos dados e evitar o descarte de pregões recentes da B3 devido a atrasos ou indisponibilidade na API do BCB, o cruzamento é feito via **Left Join** e as cotações faltantes do dólar são preenchidas por propagação (*forward fill*).
 2. **Engenharia de Variáveis (Feature Engineering):** Como o mercado financeiro depende muito de padrões repetitivos, o backend usa a biblioteca `pandas` para compilar mais de 50 indicadores técnicos baseados no preço puro da ação antes de entregar ao modelo.
 3. **Machine Learning (XGBoost Otimizado):** O cérebro do sistema utiliza validação cruzada (`TimeSeriesSplit`) e Hyperparameter Tuning. A IA cria várias árvores de decisão para projetar os fechamentos em um horizonte de 10 dias no futuro.
 4. **Dashboard Dinâmico Local:** Toda interação é servida em *Vanilla JS* associada à renderização avançada do *Chart.js*, com zoom por scroll do mouse e customização de timeframes globais.

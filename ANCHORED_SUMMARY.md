@@ -59,6 +59,7 @@ Ao mudar qualquer parâmetro → `updateConfluencePanel()` propaga para:
 - [x] Modais de detalhe por ponto de previsão (clique no gráfico)
 - [x] Badge dinâmico de fonte de dados (Alpha Vantage vs Yahoo Finance)
 - [x] Modo alternativo com Dashboard Streamlit interativo via Plotly (`--modo-streamlit`)
+- [x] Cruzamento de dados com Dólar (BCB) via Left Join + Forward Fill para evitar descarte de pregões recentes da B3
 
 ---
 
@@ -93,4 +94,4 @@ window.updateConfluencePanel = function() {
 
 Chamada por: `renderSentimentData()` (toda vez que o sentimento muda) e `drawCharts()` (após redesenho dos gráficos).
 
-*Atualizado em 2026-06-05 — Documentação em conformidade com o código: adicionado o modo Streamlit alternativo, corrigido o tempo de heartbeat (120s) e os limiares de sentimento (0.05 e 0.15).*
+*Atualizado em 2026-06-06 — Documentação em conformidade com o código: adicionado o modo Streamlit alternativo, corrigido o tempo de heartbeat (120s), limiares de sentimento (0.05 e 0.15) e cruzamento resiliente de dados de câmbio via Left Join + Forward Fill.*

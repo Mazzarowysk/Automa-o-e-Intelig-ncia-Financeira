@@ -1145,9 +1145,12 @@ def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end=None, ar
             # Baixar e fazer merge com os dados do Dólar
             df_dolar = baixar_dados_dolar(start, end)
             if not df_dolar.empty:
-                # Merge sugerido pelo usuário: Inner Join
-                dados = pd.merge(dados, df_dolar, left_on=col_date, right_on="data", how="inner")
+                # Usar Left Join para não descartar dados recentes da B3 caso o BCB esteja atrasado
+                dados = pd.merge(dados, df_dolar, left_on=col_date, right_on="data", how="left")
                 dados.drop(columns=["data"], inplace=True)
+                # Preencher dados nulos do dólar (decorrentes de atrasos no BCB) com o último valor disponível
+                if "Dolar_Fechamento" in dados.columns:
+                    dados["Dolar_Fechamento"] = dados["Dolar_Fechamento"].ffill().bfill()
                 # Calcular retorno percentual após o merge para refletir dias úteis da B3
                 dados["Dolar_Retorno"] = dados["Dolar_Fechamento"].pct_change() * 100
                 

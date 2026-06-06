@@ -41,6 +41,7 @@ Todos os gráficos, em todas as abas, partem do mesmo conjunto de dados (`global
 1. **Carregamento e Limpeza**
    - Carrega `itub4_historico.csv` com preços OHLCV desde 21/12/2000.
    - Remove valores faltantes e garante cronologia correta.
+   - Realiza o cruzamento com dados de cotação do Dólar obtidos do Banco Central (BCB) utilizando **Left Join** (para não descartar dias recentes da B3 quando a API do BCB estiver atrasada ou ausente). Cotações nulas do dólar no fim da série são tratadas com propagação (*forward fill*).
 
 2. **Engenharia de Features (>50 indicadores)**
    - Médias Móveis (SMA 20/50/200, EMA 9/21)

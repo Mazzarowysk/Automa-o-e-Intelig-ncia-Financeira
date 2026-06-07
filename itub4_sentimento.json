@@ -1,11 +1,11 @@
 {
-  "score_medio": 0.105,
+  "score_medio": 0.106,
   "classificacao": "Otimismo",
   "noticias": [
     {
       "titulo": "Eurizon Capital SGR S.p.A. Acquires Shares of 736,872 Itau Unibanco Holding S.A. $ITUB",
       "resumo": "Eurizon Capital SGR S.p.A. has acquired 736,872 shares of Itau Unibanco Holding S.A. (NYSE:ITUB) worth approximately $5.28 million during the fourth quarter. This acquisition comes as Itau Unibanco missed its Q4 earnings and revenue estimates, reporting EPS of $0.20 against an expected $0.22, and revenue of $9.01 billion versus an anticipated $9.41 billion. Despite the misses, analysts currently rate the stock a \"Moderate Buy\" with an average target price of $9.00, and the company recently declared a special dividend of $0.068 per share.",
-      "score": -0.05575,
+      "score": -0.062943,
       "data": "02/06/2026",
       "fonte": "MarketBeat",
       "link": "https://www.marketbeat.com/instant-alerts/filing-eurizon-capital-sgr-spa-acquires-shares-of-736872-itau-unibanco-holding-sa-itub-2026-06-02/"
@@ -13,7 +13,7 @@
     {
       "titulo": "Itaú Unibanco Formalizes Executive Removal in May 28 Board Meeting",
       "resumo": "Itaú Unibanco (ITUB) formalized the removal of executive Luís Eduardo Gross Siqueira Cunha, effective March 31, 2026, during a May 28, 2026 board meeting. The decision was reported in a Form 6-K filing with the U.S. SEC, indicating a change in the bank's executive lineup. Analysts maintain a \"Buy\" rating on ITUB with a $9.00 price target, while TipRanks' AI analyst, Spark, rates it as \"Neutral\" due to financial performance and earnings outlook balanced against technical momentum and financial risks.",
-      "score": 0.025082,
+      "score": 0.047928,
       "data": "31/05/2026",
       "fonte": "The Globe and Mail",
       "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/2216659/itau-unibanco-formalizes-executive-removal-in-may-28-board-meeting/"
@@ -21,7 +21,7 @@
     {
       "titulo": "Itaú Unibanco Board Approves Interest on Capital Distribution on May 28, 2026",
       "resumo": "Itaú Unibanco's board of directors approved the distribution of interest on capital to shareholders, to be paid by August 31, 2026. This distribution will amount to R$0.36188 per share gross, or R$0.298551 net, with the credit recorded on June 29, 2026, for shareholders of record as of June 18, 2026. Analysts currently rate ITUB as a Buy with a $9.00 price target, supported by solid financials and an attractive valuation, despite some technical and financial risks.",
-      "score": 0.411315,
+      "score": 0.43624,
       "data": "31/05/2026",
       "fonte": "The Globe and Mail",
       "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB-N/pressreleases/2216661/itau-unibanco-board-approves-interest-on-capital-distribution-on-may-28-2026/"
@@ -29,7 +29,7 @@
     {
       "titulo": "Itaú Unibanco Approves BRL 3.99 Billion Interest on Capital for 2026",
       "resumo": "Itaú Unibanco's board has approved a BRL 3.99 billion Interest on Capital payment for fiscal year 2026, amounting to BRL 0.36188 per share (BRL 0.298551 net) payable by August 31, 2026, to shareholders of record on June 18, 2026. This decision underscores the bank's commitment to shareholder remuneration. Analysts currently rate ITUB stock as a Buy with a $9.00 price target, while TipRanks’ AI Analyst, Spark, assigns a Neutral score, citing solid financial performance and attractive valuation offset by weak near-term technical momentum and financial risks.",
-      "score": 0.039355,
+      "score": 0.002917,
       "data": "31/05/2026",
       "fonte": "The Globe and Mail",
       "link": "https://www.theglobeandmail.com/investing/markets/stocks/ITUB/pressreleases/2216956/itau-unibanco-approves-brl-399-billion-interest-on-capital-for-2026/"
@@ -40,5 +40,5 @@
     "fim": "2026-06-07"
   },
   "fonte": "Alpha Vantage",
-  "atualizado_em": "2026-06-06 21:21:08"
+  "atualizado_em": "2026-06-06 22:10:31"
 }

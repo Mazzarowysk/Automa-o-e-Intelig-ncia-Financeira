@@ -2537,7 +2537,7 @@ window.updateConfluencePanel = function() {
     if (window.priceChartInstance && window.priceChartInstance.data && window.priceChartInstance.data.datasets) {
         const adjustedDataset = window.priceChartInstance.data.datasets.find(ds => ds.label === 'Ajuste c/ Sentimento Notícias');
         if (adjustedDataset && globalData.history && globalData.predictions) {
-            const histData = globalData.history;
+            const histData = getVisibleHistory();
             const predData = globalData.predictions;
             if (predData.length > 0) {
                 const xgbFuture = predData.map(d => d.Preco_Previsto);
@@ -2565,7 +2565,7 @@ window.updateConfluencePanel = function() {
         const adjustedTechDataset = window.xgbForecastChartInstance.data.datasets.find(ds => ds.label === 'Ajuste c/ Sentimento Notícias');
         if (adjustedTechDataset && globalData.predictions) {
             const predData = globalData.predictions;
-            const histLen = window.xgbForecastChartInstance.data.datasets[0]?.data?.length || 0;
+            const histLen = getVisibleTechHistory().length;
             if (predData.length > 0 && histLen > 0) {
                 const xgbFuture = predData.map(d => d.Preco_Previsto);
 

@@ -94,4 +94,4 @@ window.updateConfluencePanel = function() {
 
 Chamada por: `renderSentimentData()` (toda vez que o sentimento muda) e `drawCharts()` (após redesenho dos gráficos).
 
-*Atualizado em 2026-06-06 — Documentação em conformidade com o código: adicionado o modo Streamlit alternativo, corrigido o tempo de heartbeat (120s), limiares de sentimento (0.05 e 0.15) e cruzamento resiliente de dados de câmbio via Left Join + Forward Fill.*
+*Atualizado em 2026-06-06 — Documentação em conformidade com o código: adicionado o modo Streamlit alternativo, corrigido o tempo de heartbeat (120s), limiares de sentimento (0.05 e 0.15), cruzamento resiliente de dados de câmbio via Left Join + Forward Fill, alinhamento de labels de sentimento no gráfico técnico, e ajuste no preenchimento de nulos com base no histórico visível por timeframe (getVisibleHistory/getVisibleTechHistory).*

@@ -130,6 +130,12 @@ const precoAjustado = precoXGBoost * fatorAjuste;
 - Gráfico principal (`priceChart`) — aba Dashboard
 - Gráfico `xgbForecastChart` — aba Análise Técnica
 
+**Comportamento em Diferentes Períodos (Resiliência Temporal):**
+Para evitar que a linha ciano suma ou fique deslocada incorretamente ao aplicar zooms ou trocar o período visual do gráfico (1M, 3M, 1A, etc.):
+1. O preenchimento da linha usa o histórico visível de cada gráfico (`getVisibleHistory()` e `getVisibleTechHistory()`) para calcular o deslocamento (padding de nulos) dinamicamente.
+2. A filtragem por timeframe usa a última data disponível no CSV (`anchorDate`) como referência no lugar do relógio do sistema local, prevenindo desalinhamentos por fusos horários ou atrasos de atualização de dados da B3.
+3. O dataset do gráfico de análise técnica está alinhado sob o mesmo nome de label (`'Ajuste c/ Sentimento Notícias'`), o que garante a correta sincronia e evita erros no console no callback do `updateConfluencePanel()`.
+
 #### 3.4 Painel de Confluência de Sinais
 
 Localizado acima do gráfico principal, cruza dois vetores de informação em tempo real:

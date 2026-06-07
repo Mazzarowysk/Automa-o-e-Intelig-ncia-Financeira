@@ -110,6 +110,9 @@ O **amplificador visual** garante separação mínima entre as linhas mesmo em s
 - Área verde entre as linhas → sentimento otimista (ciano acima da vermelha)
 - Área vermelha entre as linhas → sentimento pessimista (ciano abaixo da vermelha)
 
+**Resiliência a Diferentes Períodos (Timeframes):**
+A renderização e o preenchimento de dados da linha de ajuste ciano em diferentes períodos (1M, 3M, 1A, etc.) são sincronizados dinamicamente com base no histórico visível de cada aba (`getVisibleHistory()` e `getVisibleTechHistory()`). O cálculo do espaçamento (padding de valores nulos) usa o tamanho dinâmico filtrado em vez do histórico completo, garantindo que a projeção híbrida apareça perfeitamente alinhada na tela ao mudar de período. Além disso, a filtragem temporal é ancorada de forma robusta na data final dos dados do CSV (`anchorDate`) para mitigar divergências com o relógio do sistema local.
+
 ---
 
 ## 5. Engenharia de Features e a Padronização (Z-Score)

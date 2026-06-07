@@ -286,7 +286,7 @@ def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None):
     Usa Alpha Vantage se a chave estiver configurada; caso contrário, usa yfinance + VADER.
     """
     if USE_ALPHA_VANTAGE:
-        print(f"[INFO] Usando Alpha Vantage para sentimento ({start_date_str} → {end_date_str})")
+        print(f"[INFO] Usando Alpha Vantage para sentimento ({start_date_str} -> {end_date_str})")
         return analisar_sentimento_alpha_vantage(start_date_str, end_date_str)
     else:
         print(f"[INFO] Usando Yahoo Finance + VADER para sentimento (chave Alpha Vantage não configurada)")
@@ -370,7 +370,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 start_date = data.get('start', '1995-01-01')
                 end_date = data.get('end', calcular_data_fim_padrao())
 
-                print(f"\n[INFO] Retreinamento: {start_date} → {end_date}")
+                print(f"\n[INFO] Retreinamento: {start_date} -> {end_date}")
 
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = 'utf-8'
@@ -408,7 +408,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 start_date = data.get('start', None)
                 end_date = data.get('end', None)
 
-                print(f"\n[INFO] Análise de sentimento: {start_date or 'início'} → {end_date or 'hoje'}")
+                print(f"\n[INFO] Analise de sentimento: {start_date or 'inicio'} -> {end_date or 'hoje'}")
 
                 resultado = analisar_sentimento_por_periodo(start_date, end_date)
 
@@ -459,9 +459,9 @@ def start_server():
     try:
         with ThreadedTCPServer(("", PORT), CustomHandler) as httpd:
             print("="*55)
-            print(f"  🏦 ITUB4 QUANTUM - SERVIDOR ATIVO")
-            print(f"  📡 http://localhost:{PORT}")
-            print(f"  🔔 Servidor encerrará automaticamente ao fechar o navegador")
+            print(f"   ITUB4 QUANTUM - SERVIDOR ATIVO")
+            print(f"   http://localhost:{PORT}")
+            print(f"   Servidor encerrara automaticamente ao fechar o navegador")
             print("="*55)
             webbrowser.open(f"http://localhost:{PORT}")
             httpd.serve_forever()

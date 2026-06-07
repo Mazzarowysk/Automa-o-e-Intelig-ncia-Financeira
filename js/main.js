@@ -50,6 +50,7 @@ function setupTickerSelector() {
     // 2. Event Listeners para cápsulas
     capsules.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (isRetraining) return; // evitar cliques múltiplos enquanto treina
             capsules.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             if (customInput) customInput.value = '';
@@ -59,19 +60,31 @@ function setupTickerSelector() {
             if (fixCheckbox && fixCheckbox.checked) {
                 localStorage.setItem('default_ticker', window.currentTicker);
             }
+
+            // Disparar automaticamente o cálculo do modelo para a ação selecionada
+            const btnRetrain = document.getElementById('btn-retrain');
+            if (btnRetrain) btnRetrain.click();
         });
     });
 
     // 3. Event Listener para custom input
     if (customInput) {
-        customInput.addEventListener('input', () => {
-            const val = customInput.value.toUpperCase().trim();
-            if (val) {
-                capsules.forEach(b => b.classList.remove('active'));
-                window.currentTicker = val;
-                
-                if (fixCheckbox && fixCheckbox.checked) {
-                    localStorage.setItem('default_ticker', window.currentTicker);
+        customInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isRetraining) return;
+                const val = customInput.value.toUpperCase().trim();
+                if (val) {
+                    capsules.forEach(b => b.classList.remove('active'));
+                    window.currentTicker = val;
+                    
+                    if (fixCheckbox && fixCheckbox.checked) {
+                        localStorage.setItem('default_ticker', window.currentTicker);
+                    }
+
+                    // Disparar automaticamente o cálculo do modelo
+                    const btnRetrain = document.getElementById('btn-retrain');
+                    if (btnRetrain) btnRetrain.click();
                 }
             }
         });

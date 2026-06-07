@@ -153,7 +153,7 @@ O **Alvo Previsto (Previsão 10 Dias)** é uma variável interpretativa baseada 
 - Zoom centralizado no ponto do cursor (não na borda do gráfico)
 
 ### Diário do Analista
-- Textarea com persistência em `localStorage`
+- Campo de texto (`<textarea>`) com persistência em `localStorage`
 - Cada entrada registra: data/hora, viés (Alta/Baixa/Neutro) e preço atual da ITUB4
 - Timeline cronológica de anotações com opção de exclusão individual
 

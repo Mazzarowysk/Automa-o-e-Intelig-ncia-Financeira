@@ -1410,4 +1410,47 @@ input:focus + .slider {
     background: rgba(56, 189, 248, 0.1);
 }
 
+/* ===== Collapsible Panels ===== */
+.btn-collapse {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-weight: 500;
+}
+
+.btn-collapse:hover {
+    color: var(--accent-blue);
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.panel-collapsed {
+    padding-bottom: 1rem !important;
+}
+
+.panel-collapsed > *:not(.chart-header):not(#confluence-panel) {
+    display: none !important;
+}
+
+/* For confluence panel specifically when collapsed */
+.confluence-collapsed #confluence-desc,
+.confluence-collapsed #confluence-details {
+    display: none !important;
+}
+
+.confluence-collapsed #confluence-panel {
+    border-bottom-left-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+}
+
 

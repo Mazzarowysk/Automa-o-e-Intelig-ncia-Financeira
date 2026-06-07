@@ -148,8 +148,9 @@
 
             <!-- Market Sentiment Section -->
             <section id="sentiment-section" class="sentiment-panel glass-panel" style="margin-bottom: 2rem;">
-                <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%;">
                     <h3><i class="fa-solid fa-newspaper"></i> Termômetro de Sentimento do Mercado <i class="fa-regular fa-circle-question tooltip-icon" title="O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas ao Itaú Unibanco. Filtre por período para ver como o sentimento evoluiu ao longo do tempo."></i></h3>
+                    <button class="btn-collapse" data-target="sentiment-section" title="Recolher/Expandir"><i class="fa-solid fa-chevron-up"></i> Recolher</button>
                 </div>
 
                 <!-- Filtros de Período -->
@@ -234,6 +235,7 @@
                             <div id="confluence-badge" style="padding: 8px 16px; border-radius: 6px; background: rgba(255,255,255,0.1); color: #cbd5e1; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                                 <i class="fa-solid fa-spinner fa-spin"></i> Analisando...
                             </div>
+                            <button class="btn-collapse" data-target="confluence-panel-wrapper" title="Recolher/Expandir" style="padding: 4px 10px; font-size: 0.8rem;"><i class="fa-solid fa-chevron-up"></i> Recolher</button>
                             <i id="confluence-arrow" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 1.2rem; transition: transform 0.3s ease;"></i>
                         </div>
                     </div>
@@ -257,23 +259,26 @@
 
                 <!-- Price History & Predictions -->
                 <div id="chart-price" class="chart-container large-chart glass-panel">
-                    <div class="chart-header">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%;">
                         <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias) <i class="fa-regular fa-circle-question tooltip-icon" title="Gráfico principal comparando o histórico real de preços da ITUB4 com as projeções futuras feitas pela Inteligência Artificial do XGBoost para os próximos 10 pregões."></i></h3>
-                        <div class="chart-toggle-group" id="timeframe-controls" style="flex-wrap: wrap;">
-                            <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
-                            <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
-                            <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
-                            <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
-                            <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
-                            <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
-                            <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
-                            <button class="chart-toggle-btn" id="reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
-                            <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
-                                <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
-                                <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
-                                <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
-                                <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <div class="chart-toggle-group" id="timeframe-controls" style="flex-wrap: wrap; margin-bottom: 0;">
+                                <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
+                                <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
+                                <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
+                                <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
+                                <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
+                                <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                                <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
+                                <button class="chart-toggle-btn" id="reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                                <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                                    <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                                    <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                    <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                                </div>
                             </div>
+                            <button class="btn-collapse" data-target="chart-price" title="Recolher/Expandir"><i class="fa-solid fa-chevron-up"></i> Recolher</button>
                         </div>
                     </div>
                     <div class="canvas-wrapper">
@@ -283,23 +288,26 @@
 
                 <!-- RSI Chart -->
                 <div id="chart-rsi" class="chart-container glass-panel">
-                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%;">
                         <h3><i class="fa-solid fa-wave-square"></i> Oscilador RSI (14 Períodos) <i class="fa-regular fa-circle-question tooltip-icon" title="O Índice de Força Relativa (RSI) mede a velocidade das mudanças de preço. Valores acima de 70 indicam que a ação subiu muito e pode estar 'sobrecomprada', enquanto abaixo de 30 indica que caiu muito e pode estar 'sobrevendida'."></i></h3>
-                        <div class="chart-toggle-group" id="rsi-timeframe-controls" style="flex-wrap: wrap;">
-                            <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
-                            <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
-                            <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
-                            <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
-                            <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
-                            <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
-                            <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
-                            <button class="chart-toggle-btn" id="rsi-reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
-                            <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
-                                <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
-                                <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
-                                <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
-                                <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <div class="chart-toggle-group" id="rsi-timeframe-controls" style="flex-wrap: wrap; margin-bottom: 0;">
+                                <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
+                                <button class="chart-toggle-btn" data-period="5Y">5 Anos</button>
+                                <button class="chart-toggle-btn" data-period="3Y">3 Anos</button>
+                                <button class="chart-toggle-btn" data-period="1Y">1 Ano</button>
+                                <button class="chart-toggle-btn" data-period="3M">3 Meses</button>
+                                <button class="chart-toggle-btn" data-period="1M">1 Mês</button>
+                                <button class="chart-toggle-btn" data-period="custom"><i class="fa-solid fa-calendar-days"></i> Personalizado</button>
+                                <button class="chart-toggle-btn" id="rsi-reset-zoom-btn"><i class="fa-solid fa-arrows-rotate"></i> Reset Zoom</button>
+                                <div class="custom-dates-container" style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+                                    <input type="date" class="custom-start-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                    <span style="color: #94a3b8; font-size: 0.85rem;">até</span>
+                                    <input type="date" class="custom-end-date" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 4px; border-radius: 4px; color-scheme: dark;">
+                                    <button class="btn-retrain custom-search-btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fa-solid fa-magnifying-glass"></i> Aplicar</button>
+                                </div>
                             </div>
+                            <button class="btn-collapse" data-target="chart-rsi" title="Recolher/Expandir"><i class="fa-solid fa-chevron-up"></i> Recolher</button>
                         </div>
                     </div>
                     <div class="canvas-wrapper">

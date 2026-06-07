@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAnalystDiary();
     setupSentimentFilters();
     initDateEnd();
+    setupCollapsiblePanels();
 });
 
 /**
@@ -2586,3 +2587,43 @@ window.updateConfluencePanel = function() {
         }
     }
 };
+
+/**
+ * Configura os botões de recolher/expandir (colapsar) dos painéis.
+ */
+function setupCollapsiblePanels() {
+    const collapseBtns = document.querySelectorAll('.btn-collapse');
+    collapseBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita cliques indesejados no elemento pai (como no confluência panel)
+            const targetId = btn.dataset.target;
+            const targetEl = document.getElementById(targetId);
+            if (!targetEl) return;
+            
+            const isCollapsed = targetEl.classList.toggle('panel-collapsed');
+            
+            // Tratamento especial para o wrapper de confluência
+            if (targetId === 'confluence-panel-wrapper') {
+                targetEl.classList.toggle('confluence-collapsed', isCollapsed);
+            }
+            
+            // Atualizar o ícone e texto do botão
+            if (isCollapsed) {
+                btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Expandir`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-chevron-up"></i> Recolher`;
+                
+                // Redesenhar/atualizar os gráficos para garantir o redimensionamento após expandir
+                setTimeout(() => {
+                    if (targetId === 'chart-price' && priceChartInstance) {
+                        priceChartInstance.resize();
+                        priceChartInstance.update('none');
+                    } else if (targetId === 'chart-rsi' && rsiChartInstance) {
+                        rsiChartInstance.resize();
+                        rsiChartInstance.update('none');
+                    }
+                }, 50);
+            }
+        });
+    });
+}

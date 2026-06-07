@@ -1,10 +1,8 @@
-/**
- * ITUB4 Quantum - Main JavaScript
- * Focado em RSI e R² (XGBoost)
- */
+window.currentTicker = "ITUB4.SA";
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicialização
+    setupTickerSelector();
     loadMetrics();
     loadChartData();
     setupEventListeners();
@@ -15,6 +13,81 @@ document.addEventListener('DOMContentLoaded', () => {
     initDateEnd();
     setupCollapsiblePanels();
 });
+
+function setupTickerSelector() {
+    const capsules = document.querySelectorAll('.ticker-capsule-btn');
+    const customInput = document.getElementById('custom-ticker');
+    const fixCheckbox = document.getElementById('fix-ticker-default');
+
+    // 1. Carregar ticker padrão
+    const savedTicker = localStorage.getItem('default_ticker');
+    if (savedTicker) {
+        window.currentTicker = savedTicker.toUpperCase();
+        if (fixCheckbox) fixCheckbox.checked = true;
+
+        // Tentar ativar cápsula correspondente
+        let found = false;
+        capsules.forEach(btn => {
+            if (btn.dataset.symbol.toUpperCase() === window.currentTicker) {
+                btn.classList.add('active');
+                found = true;
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        if (!found && customInput) {
+            customInput.value = window.currentTicker;
+        }
+    } else {
+        window.currentTicker = "ITUB4.SA"; // padrão de fábrica
+        capsules.forEach(btn => {
+            if (btn.dataset.symbol === "ITUB4.SA") btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    // 2. Event Listeners para cápsulas
+    capsules.forEach(btn => {
+        btn.addEventListener('click', () => {
+            capsules.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (customInput) customInput.value = '';
+            
+            window.currentTicker = btn.dataset.symbol;
+            
+            if (fixCheckbox && fixCheckbox.checked) {
+                localStorage.setItem('default_ticker', window.currentTicker);
+            }
+        });
+    });
+
+    // 3. Event Listener para custom input
+    if (customInput) {
+        customInput.addEventListener('input', () => {
+            const val = customInput.value.toUpperCase().trim();
+            if (val) {
+                capsules.forEach(b => b.classList.remove('active'));
+                window.currentTicker = val;
+                
+                if (fixCheckbox && fixCheckbox.checked) {
+                    localStorage.setItem('default_ticker', window.currentTicker);
+                }
+            }
+        });
+    }
+
+    // 4. Event Listener para checkbox de fixar
+    if (fixCheckbox) {
+        fixCheckbox.addEventListener('change', () => {
+            if (fixCheckbox.checked) {
+                localStorage.setItem('default_ticker', window.currentTicker);
+            } else {
+                localStorage.removeItem('default_ticker');
+            }
+        });
+    }
+}
 
 /**
  * Renderiza os dados de sentimento nos elementos HTML.
@@ -155,7 +228,7 @@ async function fetchSentimentByPeriod(startDate, endDate) {
     statusEl.textContent = 'Buscando...';
 
     try {
-        const body = JSON.stringify({ start: startDate, end: endDate });
+        const body = JSON.stringify({ start: startDate, end: endDate, ticker: window.currentTicker });
         const response = await fetch('/sentiment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -966,6 +1039,25 @@ async function loadMetrics() {
         
         const data = await res.json();
         
+        // Atualizar labels de ativos dinamicamente
+        if (data.ticker_info) {
+            const sym = data.ticker_info.symbol;
+            const name = data.ticker_info.name || sym;
+            
+            const lblName = document.getElementById('lbl-asset-name');
+            if (lblName) lblName.innerText = `${name} (${sym})`;
+            
+            const tooltipPrice = document.getElementById('tooltip-asset-price');
+            if (tooltipPrice) {
+                tooltipPrice.title = `Último preço de fechamento registrado no histórico de ${name} (${sym}) com a respectiva variação percentual em relação ao pregão anterior.`;
+            }
+            
+            const tooltipSent = document.getElementById('tooltip-sentiment');
+            if (tooltipSent) {
+                tooltipSent.title = `O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas a ${name} (${sym}). Filtre por período para ver como o sentimento evoluiu ao longo do tempo.`;
+            }
+        }
+        
         // Encontrar o melhor modelo (geralmente XGBoost Otimizado)
         let bestModelKey = Object.keys(data)[0];
         let bestMae = Number.POSITIVE_INFINITY;
@@ -1257,7 +1349,7 @@ function drawPriceChart() {
             labels: labels,
             datasets: [
                 {
-                    label: 'Preço Real (ITUB4)',
+                    label: `Preço Real (${window.currentTicker || 'Ativo'})`,
                     data: closePrices,
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.08)',
@@ -1546,7 +1638,7 @@ function drawTechCharts() {
             labels: labels,
             datasets: [
                 {
-                    label: 'Preço Real (ITUB4)',
+                    label: `Preço Real (${window.currentTicker || 'Ativo'})`,
                     data: closePrices,
                     borderColor: '#1d4ed8',
                     backgroundColor: 'rgba(29, 78, 216, 0.16)',
@@ -2202,7 +2294,7 @@ function setupTrainingPanel() {
             const response = await fetch('/retrain', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start, end })
+                body: JSON.stringify({ start, end, ticker: window.currentTicker })
             });
 
             const result = await response.json();
@@ -2364,7 +2456,7 @@ function setupAnalystDiary() {
                         <span class="diary-date"><i class="fa-regular fa-clock"></i> ${entry.dateFormatted}</span>
                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
                             <span class="diary-price-badge" style="${badgeStyle}"><i class="fa-solid ${badgeIcon}"></i> Viés: ${entry.sentiment.toUpperCase()}</span>
-                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ITUB4: R$ ${entry.price}</span>` : ''}
+                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ${entry.ticker || 'ITUB4'}: R$ ${entry.price}</span>` : ''}
                         </div>
                     </div>
                     <button class="btn-delete-diary" data-id="${entry.id}" title="Excluir anotação"><i class="fa-solid fa-trash-can"></i></button>
@@ -2411,7 +2503,8 @@ function setupAnalystDiary() {
             dateFormatted: dateFormatted,
             sentiment: currentSentiment,
             content: content,
-            price: currentPrice
+            price: currentPrice,
+            ticker: window.currentTicker || 'ITUB4'
         };
 
         const entries = JSON.parse(localStorage.getItem('itub4_diary_entries') || '[]');

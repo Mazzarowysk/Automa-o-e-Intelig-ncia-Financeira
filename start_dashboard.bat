@@ -1,10 +1,10 @@
 @echo off
-title ITUB4 Dashboard Server
+title Quantum Finance Server
 
 cd /d "%~dp0"
 
 echo ==============================================
-echo    ITUB4 QUANTUM - INICIANDO SISTEMA
+echo    QUANTUM FINANCE - INICIANDO SISTEMA
 echo ==============================================
 echo.
 echo Limpando servidores fantasmas antigos na porta 8000...

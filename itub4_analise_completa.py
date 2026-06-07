@@ -12,6 +12,19 @@ import sys
 import os
 import webbrowser
 import yfinance as yf
+import io
+
+# Garantir codificação UTF-8 no console Windows
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if sys.stderr.encoding != 'utf-8':
+    try:
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 warnings.filterwarnings('ignore')
 
@@ -29,7 +42,7 @@ EM_STREAMLIT = 'streamlit' in sys.modules or 'streamlit.runtime' in sys.modules
 
 if not EM_STREAMLIT:
     print("="*80)
-    print("🏦 ITUB4 - ANÁLISE COM XGBOOST OTIMIZADO + PADRONIZAÇÃO Z-SCORE")
+    print("🏦 QUANTUM FINANCE - ANÁLISE COM XGBOOST OTIMIZADO + PADRONIZAÇÃO Z-SCORE")
     print("="*80)
 
 # ============================================
@@ -1161,17 +1174,24 @@ def atualizar_dados_yfinance(ticker="ITUB4.SA", start="1995-01-01", end=None, ar
             if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
                 print(f"✅ Dados históricos salvos com sucesso em {arquivo} ({len(dados)} registros)")
         else:
-            if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
-                print(f"⚠️ Aviso: Nenhum dado retornado para {ticker} pelo yfinance.")
+            raise ValueError(f"Nenhum dado retornado para o ticker {ticker} pelo yfinance. Verifique a conexão ou se o ticker está correto.")
     except Exception as e:
         if not 'streamlit' in sys.modules and not 'streamlit.runtime' in sys.modules:
             print(f"❌ Erro ao baixar dados: {e}")
+        raise e
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="ITUB4 Analysis")
-    # Valor padrao do end date: D-1 (ultimo dia util)
+    parser = argparse.ArgumentParser(description="Quantum Finance Analysis")
+    
+    # Obter ativo padrão da config
+    try:
+        from config import DEFAULT_TICKER
+    except ImportError:
+        DEFAULT_TICKER = "ITUB4.SA"
+
     data_fim_padrao = calcular_data_fim_padrao()
+    parser.add_argument('--ticker', type=str, default=DEFAULT_TICKER, help="Ticker symbol (ex: PETR4.SA)")
     parser.add_argument('--start', type=str, default="1995-01-01", help="Start date YYYY-MM-DD")
     parser.add_argument('--end', type=str, default=data_fim_padrao, help="End date YYYY-MM-DD (padrao: D-1)")
     parser.add_argument('--modo-streamlit', action='store_true', help="Run in Streamlit mode")
@@ -1182,8 +1202,18 @@ def main():
     if args.modo_streamlit:
         criar_dashboard_streamlit()
     else:
+        ticker_para_usar = args.ticker.upper().strip()
         print(f"\n🚀 Iniciando processamento com XGBOOST OTIMIZADO + Z-SCORE...")
+        print(f"   Ativo Selecionado: {ticker_para_usar}")
         print(f"   Período Selecionado: {args.start} até {args.end}")
+        
+        # Obter nome oficial da empresa
+        company_name = ticker_para_usar
+        try:
+            t_info = yf.Ticker(ticker_para_usar).info
+            company_name = t_info.get('longName') or t_info.get('shortName') or ticker_para_usar
+        except Exception:
+            pass
         
         try:
             import streamlit
@@ -1195,7 +1225,7 @@ def main():
             return
         
         print("📊 Processando dados...")
-        atualizar_dados_yfinance(ticker="ITUB4.SA", start=args.start, end=args.end, arquivo="itub4_historico.csv")
+        atualizar_dados_yfinance(ticker=ticker_para_usar, start=args.start, end=args.end, arquivo="itub4_historico.csv")
         processador = ProcessadorDados('itub4_historico.csv')
         processador.carregar_dados()
         processador.validar_consistencia()
@@ -1236,7 +1266,12 @@ def main():
         
         # Salvar métricas
         import json
-        metricas_serializable = {}
+        metricas_serializable = {
+            "ticker_info": {
+                "symbol": ticker_para_usar,
+                "name": company_name
+            }
+        }
         for k, v in metricas.items():
             metricas_serializable[k] = {
                 'MAE': float(v['MAE']),
@@ -1249,7 +1284,8 @@ def main():
             json.dump(metricas_serializable, f, indent=2)
             
         # 8. Analisar Sentimento de Noticias
-        analisar_sentimento_noticias("ITUB")
+        ticker_base = ticker_para_usar.split('.')[0]
+        analisar_sentimento_noticias(ticker_base)
         
         print("\n✅ Dados processados e salvos!")
         print(f"   Melhor acurácia: {max(m['Acurácia'] for m in metricas.values())*100:.1f}%")

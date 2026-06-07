@@ -1,8 +1,8 @@
-# ANCHORED SUMMARY — ITUB4 Quantum Dashboard
+# ANCHORED SUMMARY — Quantum Finance Dashboard
 
 ## Estado Atual do Projeto
 
-Sistema de inteligência financeira para análise e previsão de ações ITUB4 com dashboard interativo.
+Sistema de inteligência financeira para análise e previsão de ações com dashboard interativo dinâmico.
 
 ### Stack
 - **Backend/ML:** Python 3.12, XGBoost, pandas, scikit-learn, yfinance, vaderSentiment

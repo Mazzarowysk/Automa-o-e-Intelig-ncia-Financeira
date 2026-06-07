@@ -302,10 +302,17 @@ function filterHistoryByTimeframe(data, timeframe, customStart = null, customEnd
         });
     }
 
-    // Sempre usa a data de HOJE como ancora, nao a ultima data do CSV
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const startDate = new Date(now);
+    // Ancorar o filtro na última data disponível no conjunto de dados para evitar erros de fuso horário ou relógio local desatualizado
+    let anchorDate = new Date();
+    if (data.length > 0) {
+        const lastRowDateString = String(data[data.length - 1].Date).split(' ')[0];
+        const parsedLastDate = new Date(`${lastRowDateString}T00:00:00`);
+        if (!isNaN(parsedLastDate.getTime())) {
+            anchorDate = parsedLastDate;
+        }
+    }
+    anchorDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(anchorDate);
 
     if (timeframe === '5Y') {
         startDate.setFullYear(startDate.getFullYear() - 5);

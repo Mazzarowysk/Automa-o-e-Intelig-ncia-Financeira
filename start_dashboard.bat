@@ -7,8 +7,8 @@ echo ==============================================
 echo    ITUB4 QUANTUM - INICIANDO SISTEMA
 echo ==============================================
 echo.
-echo Limpando servidores fantasmas antigos...
-wmic process where "name='python.exe' and (commandline like '%%http.server%%' or commandline like '%%servidor.py%%')" call terminate >nul 2>&1
+echo Limpando servidores fantasmas antigos na porta 8000...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000') do taskkill /f /pid %%a >nul 2>&1
 
 echo.
 echo Iniciando servidor inteligente na porta 8000...

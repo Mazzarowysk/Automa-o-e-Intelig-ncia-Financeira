@@ -440,8 +440,17 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def start_server():
-    # Limpar processos fantasmas
-    os.system('wmic process where "name=\'python.exe\' and (commandline like \'%%servidor.py%%\')" call terminate >nul 2>&1')
+    # Limpar processos fantasmas na porta 8000 usando netstat/taskkill (mais robusto que wmic, que é depreciado)
+    try:
+        import subprocess
+        output = subprocess.check_output('netstat -aon | findstr :8000', shell=True).decode('utf-8')
+        for line in output.splitlines():
+            parts = line.strip().split()
+            if len(parts) >= 5 and (parts[1].endswith(':8000') or parts[1].endswith('.0.0.0:8000') or parts[1].endswith('[::]:8000')):
+                pid = parts[-1]
+                subprocess.run(f'taskkill /f /pid {pid}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
 
     class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         daemon_threads = True

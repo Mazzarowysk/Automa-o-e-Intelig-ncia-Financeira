@@ -1745,7 +1745,7 @@ function drawTechCharts() {
                     fill: false
                 },
                 {
-                    label: 'Ajuste Sentimento (Score: ' + window.currentSentimentScore + ')',
+                    label: 'Ajuste c/ Sentimento Notícias',
                     data: xgbFutureTechAdjusted,
                     borderColor: '#06b6d4',
                     backgroundColor: 'rgba(6, 182, 212, 0.10)',

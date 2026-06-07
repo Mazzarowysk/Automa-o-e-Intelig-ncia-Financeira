@@ -1090,7 +1090,8 @@ function updateCurrentPriceAndRSI() {
         if (prevRow && prevRow.Close) {
             const varPct = ((lastRow.Close / prevRow.Close) - 1) * 100;
             const descPrice = document.getElementById('desc-price');
-            descPrice.innerText = `${varPct > 0 ? '+' : ''}${varPct.toFixed(2)}% vs Ontem`;
+            const dateStr = lastRow.Date ? formatDateLabel(lastRow.Date) : '';
+            descPrice.innerHTML = `${varPct > 0 ? '+' : ''}${varPct.toFixed(2)}% vs Ontem <span style="opacity: 0.75; font-size: 0.75rem; display: block; margin-top: 4px;">(${dateStr})</span>`;
             descPrice.className = `kpi-desc ${varPct >= 0 ? 'text-success' : 'text-danger'}`;
         }
     }

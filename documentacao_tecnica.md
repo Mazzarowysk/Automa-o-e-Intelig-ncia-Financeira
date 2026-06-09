@@ -1,12 +1,12 @@
-# Documentação Técnica do Sistema - Quantum Finance
+# Documentação Técnica do Sistema - ITUB4 Inteligência Financeira
 
-Este documento detalha o funcionamento interno, as métricas de interface e a arquitetura preditiva do sistema de previsão baseado em XGBoost da cotação de ativos.
+Este documento detalha o funcionamento interno, as métricas de interface e a arquitetura preditiva do sistema de previsão baseado em XGBoost da cotação ITUB4.
 
 ---
 
 ## 1. Arquitetura e Funcionalidades Globais
 
-O ecossistema do painel "Quantum Finance" foi construído mesclando três grandes frentes:
+O ecossistema do painel "ITUB4 Quantum" foi construído mesclando três grandes frentes:
 
 1. **Pipeline de Dados Macro e Micro:** Através das bibliotecas `yfinance` e de comunicação HTTP com a API do Banco Central (SGS do BCB), o sistema une os dados de pregões do Itaú (Abertura, Máxima, Mínima, Fechamento e Volume) à oscilação da taxa de câmbio diária. Os dados são carregados no arquivo *itub4_historico.csv*. Para garantir a integridade dos dados e evitar o descarte de pregões recentes da B3 devido a atrasos ou indisponibilidade na API do BCB, o cruzamento é feito via **Left Join** e as cotações faltantes do dólar são preenchidas por propagação (*forward fill*).
 2. **Engenharia de Variáveis (Feature Engineering):** Como o mercado financeiro depende muito de padrões repetitivos, o backend usa a biblioteca `pandas` para compilar mais de 50 indicadores técnicos baseados no preço puro da ação antes de entregar ao modelo.

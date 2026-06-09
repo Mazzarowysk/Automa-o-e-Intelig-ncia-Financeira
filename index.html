@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Finance - Inteligência Financeira</title>
+    <title>ITUB4 - Inteligência Financeira</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
             <div class="logo-container" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <i class="fa-solid fa-chart-line logo-icon"></i>
-                    <h1 class="logo-text">Quantum <span>Finance</span></h1>
+                    <h1 class="logo-text"><span id="logo-ticker">ITUB4</span> <span>Quantum</span></h1>
                 </div>
                 <span class="user-signature" style="font-size: 0.7rem; color: var(--text-secondary); opacity: 0.55; margin-left: 40px; font-weight: 500; font-family: var(--font-body);">@mazzarowysk</span>
             </div>
@@ -55,41 +55,28 @@
                     <p>Análise preditiva XGBoost otimizado com padronização Z-Score</p>
                 </div>
                 <div class="header-actions">
+                    <select id="ticker-selector" class="ticker-select" style="background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px 0 0 8px; padding: 0.5rem 1rem; font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; outline: none; margin-right: -1px;">
+                        <option value="ITUB4">Itaú (ITUB4)</option>
+                        <option value="PETR4">Petrobras (PETR4)</option>
+                        <option value="VALE3">Vale (VALE3)</option>
+                        <option value="BBDC4">Bradesco (BBDC4)</option>
+                        <option value="ABEV3">Ambev (ABEV3)</option>
+                        <option value="BBAS3">Banco do Brasil (BBAS3)</option>
+                        <option value="WEGE3">WEG (WEGE3)</option>
+                        <option value="MGLU3">Magalu (MGLU3)</option>
+                        <option value="B3SA3">B3 (B3SA3)</option>
+                        <option value="RENT3">Localiza (RENT3)</option>
+                        <option value="SUZB3">Suzano (SUZB3)</option>
+                    </select>
+                    <input type="text" id="custom-ticker-input" placeholder="Ou digite outro..." style="background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 0 8px 8px 0; padding: 0.5rem 1rem; font-family: 'Inter', sans-serif; font-weight: 600; outline: none; width: 140px;" autocomplete="off">
                     <button class="btn-shutdown" id="btn-shutdown"><i class="fa-solid fa-power-off"></i> Desligar Servidor</button>
                     <button class="btn-info" id="btn-toggle-info"><i class="fa-solid fa-circle-info"></i> Entender a Análise</button>
                     <button class="btn-refresh" id="btn-refresh"><i class="fa-solid fa-rotate-right"></i> Atualizar Dados</button>
-            </header>
-            <section id="training-section" class="training-panel">
-                <!-- Seletor de Ativo Elegante -->
-                <div class="ticker-selector-container" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                    <div class="ticker-selector-left" style="display: flex; flex-direction: column; gap: 8px;">
-                        <label style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 600; color: var(--accent-blue);">Ativo em Destaque</label>
-                        <div class="ticker-capsules" id="ticker-capsules" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button class="ticker-capsule-btn active" data-symbol="ITUB4.SA">ITUB4</button>
-                            <button class="ticker-capsule-btn" data-symbol="PETR4.SA">PETR4</button>
-                            <button class="ticker-capsule-btn" data-symbol="VALE3.SA">VALE3</button>
-                            <button class="ticker-capsule-btn" data-symbol="BBAS3.SA">BBAS3</button>
-                            <button class="ticker-capsule-btn" data-symbol="WEGE3.SA">WEGE3</button>
-                            <button class="ticker-capsule-btn" data-symbol="AAPL">AAPL</button>
-                        </div>
-                    </div>
-                    <div class="ticker-selector-right" style="display: flex; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap;">
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <label for="custom-ticker" style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 600; color: var(--text-secondary);">Outro Ativo (Ticker B3 ou Global)</label>
-                            <div style="position: relative; display: flex; align-items: center;">
-                                <input type="text" id="custom-ticker" placeholder="Ex: TSLA, BOVA11.SA" style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px 14px; color: white; font-family: var(--font-body); font-size: 0.85rem; width: 200px; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 10px;">
-                            <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
-                                <input type="checkbox" id="fix-ticker-default" style="opacity: 0; width: 0; height: 0;">
-                                <span class="slider"></span>
-                            </label>
-                            <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; font-family: var(--font-body);">Fixar como padrão</span>
-                        </div>
-                    </div>
                 </div>
+            </header>
 
+            <!-- Training Period Panel -->
+            <section id="training-section" class="training-panel">
                 <div class="training-panel-header" style="flex-wrap: wrap; gap: 1rem;">
                     <h3><i class="fa-solid fa-sliders"></i> Período de Treinamento da IA</h3>
                     <div class="chart-toggle-group" id="train-timeframe-controls" style="flex-wrap: wrap;">
@@ -118,7 +105,7 @@
                 </div>
                 <div class="training-notice">
                     <i class="fa-solid fa-database"></i>
-                    <span><strong>Base de Dados:</strong> O histórico disponível é atualizado dinamicamente via Yahoo Finance. Período atual: <span id="training-range-info">carregando...</span></span>
+                    <span><strong>Base de Dados:</strong> O histórico disponível no Yahoo Finance para <span id="db-ticker-name">ITUB4</span>.SA inicia no passado. Período atual: <span id="training-range-info">carregando...</span></span>
                 </div>
                 <div class="training-status" id="training-status"></div>
             </section>
@@ -169,7 +156,7 @@
                 <div class="kpi-card" data-kpi="price">
                     <div class="kpi-icon"><i class="fa-solid fa-dollar-sign"></i></div>
                     <div class="kpi-content">
-                        <h3 id="active-asset-card-title">Fechamento <span id="lbl-asset-name">--</span> <i class="fa-regular fa-circle-question tooltip-icon" id="tooltip-asset-price" title="Último preço de fechamento registrado no histórico do ativo com a respectiva variação percentual em relação ao pregão anterior."></i></h3>
+                        <h3>Fechamento <span id="price-ticker-name">Itaú (ITUB4)</span> <i class="fa-regular fa-circle-question tooltip-icon" title="Último preço de fechamento registrado no histórico da ação com a respectiva variação percentual em relação ao pregão anterior."></i></h3>
                         <div class="kpi-value" id="val-price">--</div>
                         <div class="kpi-desc" id="desc-price">Buscando dados...</div>
                     </div>
@@ -179,10 +166,11 @@
             <!-- Market Sentiment Section -->
             <section id="sentiment-section" class="sentiment-panel glass-panel" style="margin-bottom: 2rem;">
                 <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%;">
-                    <h3><i class="fa-solid fa-newspaper"></i> Termômetro de Sentimento do Mercado <i class="fa-regular fa-circle-question tooltip-icon" id="tooltip-sentiment" title="O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas ao ativo selecionado. Filtre por período para ver como o sentimento evoluiu ao longo do tempo."></i></h3>
+                    <h3><i class="fa-solid fa-newspaper"></i> Termômetro de Sentimento do Mercado <i class="fa-regular fa-circle-question tooltip-icon" title="O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas a ação atual. Filtre por período para ver como o sentimento evoluiu ao longo do tempo."></i></h3>
                     <button class="btn-collapse" data-target="sentiment-section" title="Recolher/Expandir"><i class="fa-solid fa-chevron-up"></i> Recolher</button>
                 </div>
 
+                <!-- Filtros de Período -->
                 <div class="sentiment-filters" id="sentiment-filters">
                     <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-circle-info" style="color: var(--accent-blue);"></i>
@@ -289,7 +277,7 @@
                 <!-- Price History & Predictions -->
                 <div id="chart-price" class="chart-container large-chart glass-panel">
                     <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%;">
-                        <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias) <i class="fa-regular fa-circle-question tooltip-icon" title="Gráfico principal comparando o histórico real de preços da ITUB4 com as projeções futuras feitas pela Inteligência Artificial do XGBoost para os próximos 10 pregões."></i></h3>
+                        <h3><i class="fa-solid fa-chart-candlestick"></i> Histórico de Preços e Previsão (Próximos 10 Dias) <i class="fa-regular fa-circle-question tooltip-icon" title="Gráfico principal comparando o histórico real de preços da ação com as projeções futuras feitas pela Inteligência Artificial do XGBoost para os próximos 10 pregões."></i></h3>
                         <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                             <div class="chart-toggle-group" id="timeframe-controls" style="flex-wrap: wrap; margin-bottom: 0;">
                                 <button class="chart-toggle-btn active" data-period="all"><i class="fa-solid fa-globe"></i> Global</button>
@@ -458,7 +446,7 @@
                         <li><strong>Melhor Modelo:</strong> Dentre as 3 versões treinadas (Rápido, Base, Otimizado), é aquele que encontrou os melhores parâmetros na validação cruzada.</li>
                         <li><strong>Acurácia de Direção:</strong> Não apenas prever um valor, mas acertar "se vai subir ou cair". <em>Por exemplo: 53% significa que o modelo acerta a tendência mais do que o jogar de uma moeda.</em></li>
                         <li><strong>Erro (MAE):</strong> Mean Absolute Error. É a margem de erro média (em R$) das previsões do modelo em relação à realidade observada.</li>
-                        <li><strong>Poder de Explicação (R²):</strong> Quão bem os indicadores (RSI, Bollinger, etc) justificam as variações do preço. <em>Acima de zero significa que o modelo tem Edge matemático contra o mercado aleatório.</em></li>
+                        <li><strong>Poder de Explicação (R²):</strong> Quão bem os indicadores (RSI, Bollinger, etc) justificam as variações do preço da ação selecionada. <em>Acima de zero significa que o modelo tem Edge matemático contra o mercado aleatório.</em></li>
                     </ul>
                 </div>
 

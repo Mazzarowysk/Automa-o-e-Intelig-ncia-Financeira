@@ -57,7 +57,7 @@ AV_LABEL_MAP = {
 }
 
 
-def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ticker="ITUB"):
+def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ticker="ITUB4"):
     """
     Busca notícias e sentimento via Alpha Vantage NEWS_SENTIMENT.
     Suporta filtro real de período histórico com até 50 notícias por req.
@@ -90,7 +90,7 @@ def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ti
     # Construir URL
     params = {
         "function": "NEWS_SENTIMENT",
-        "tickers":  ticker,
+        "tickers":  ticker.replace(".SA", ""),
         "limit":    "50",
         "sort":     "LATEST",
         "apikey":   ALPHA_VANTAGE_KEY,
@@ -103,7 +103,7 @@ def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ti
     url = "https://www.alphavantage.co/query?" + urllib.parse.urlencode(params)
 
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Quantum-Finance/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "ITUB4-Quantum/1.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
@@ -136,9 +136,10 @@ def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ti
             except:
                 pub_date_display = time_pub[:8]
 
+        # Preferir score específico do ticker ITUB; senão usar score geral
         ticker_score = None
         for ts in item.get("ticker_sentiment", []):
-            if ts.get("ticker", "").upper() == ticker.upper():
+            if ts.get("ticker", "").upper() == ticker.replace(".SA", "").upper() or ts.get("ticker", "").upper().startswith(ticker[:4].upper()):
                 try:
                     ticker_score = float(ts["ticker_sentiment_score"])
                 except:
@@ -177,7 +178,7 @@ def analisar_sentimento_alpha_vantage(start_date_str=None, end_date_str=None, ti
     return resultado
 
 
-def analisar_sentimento_yfinance(start_date_str=None, end_date_str=None, ticker="ITUB"):
+def analisar_sentimento_yfinance(start_date_str=None, end_date_str=None, ticker="ITUB4"):
     """
     Fallback: busca notícias do Yahoo Finance e calcula sentimento com VADER.
     Limitado a ~10 notícias recentes (restrição da API gratuita do Yahoo).
@@ -200,8 +201,8 @@ def analisar_sentimento_yfinance(start_date_str=None, end_date_str=None, ticker=
 
     try:
         import yfinance as yf
-        ticker_obj = yf.Ticker(ticker)
-        news = ticker_obj.news
+        ticker_yf = yf.Ticker(f"{ticker}.SA" if not ticker.endswith(".SA") else ticker)
+        news = ticker_yf.news
         if not news:
             resultado["erro"] = "Nenhuma notícia encontrada."
             return resultado
@@ -279,16 +280,26 @@ def analisar_sentimento_yfinance(start_date_str=None, end_date_str=None, ticker=
     return resultado
 
 
-def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None, ticker="ITUB"):
+def analisar_sentimento_por_periodo(start_date_str=None, end_date_str=None, ticker="ITUB4"):
     """
     Ponto de entrada único para análise de sentimento.
     Usa Alpha Vantage se a chave estiver configurada; caso contrário, usa yfinance + VADER.
     """
     if USE_ALPHA_VANTAGE:
-        print(f"[INFO] Usando Alpha Vantage para sentimento ({start_date_str} -> {end_date_str}) para {ticker}")
-        return analisar_sentimento_alpha_vantage(start_date_str, end_date_str, ticker)
+        print(f"[INFO] Usando Alpha Vantage para sentimento ({start_date_str} -> {end_date_str}) | Ticker: {ticker}")
+        resultado_av = analisar_sentimento_alpha_vantage(start_date_str, end_date_str, ticker)
+        
+        # Fallback automático se a Alpha Vantage bloquear por limite
+        if "erro" in resultado_av and ("Limite" in resultado_av["erro"] or "Erro" in resultado_av["erro"]):
+            print(f"[AVISO] Fallback ativado! {resultado_av['erro']} -> Buscando do Yahoo Finance.")
+            resultado_yf = analisar_sentimento_yfinance(start_date_str, end_date_str, ticker)
+            # Para avisar no frontend
+            resultado_yf["erro"] = resultado_av["erro"] + " (Buscando dados alternativos...)"
+            return resultado_yf
+            
+        return resultado_av
     else:
-        print(f"[INFO] Usando Yahoo Finance + VADER para sentimento (chave Alpha Vantage não configurada) para {ticker}")
+        print(f"[INFO] Usando Yahoo Finance + VADER para sentimento (chave Alpha Vantage não configurada) | Ticker: {ticker}")
         return analisar_sentimento_yfinance(start_date_str, end_date_str, ticker)
 
 
@@ -368,13 +379,13 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_data)
                 start_date = data.get('start', '1995-01-01')
                 end_date = data.get('end', calcular_data_fim_padrao())
-                ticker = data.get('ticker', 'ITUB4.SA')
+                ticker = data.get('ticker', 'ITUB4')
 
-                print(f"\n[INFO] Retreinamento: {start_date} -> {end_date} para {ticker}")
+                print(f"\n[INFO] Retreinamento: {ticker} | {start_date} -> {end_date}")
 
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = 'utf-8'
-                cmd = f'python itub4_analise_completa.py --start "{start_date}" --end "{end_date}" --ticker "{ticker}" --no-dashboard'
+                cmd = f'python analise_completa.py --start "{start_date}" --end "{end_date}" --ticker "{ticker}" --no-dashboard'
                 process = subprocess.run(cmd, shell=True, env=env)
 
                 if process.returncode == 0:
@@ -407,15 +418,15 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(post_data) if post_data else {}
                 start_date = data.get('start', None)
                 end_date = data.get('end', None)
-                ticker = data.get('ticker', 'ITUB4.SA')
-                ticker_base = ticker.split('.')[0]
+                ticker = data.get('ticker', 'ITUB4')
 
-                print(f"\n[INFO] Analise de sentimento: {start_date or 'inicio'} -> {end_date or 'hoje'} para {ticker_base}")
+                print(f"\n[INFO] Analise de sentimento: {ticker} | {start_date or 'inicio'} -> {end_date or 'hoje'}")
 
-                resultado = analisar_sentimento_por_periodo(start_date, end_date, ticker_base)
+                resultado = analisar_sentimento_por_periodo(start_date, end_date, ticker)
 
                 # Salvar também no arquivo para cache
-                with open('itub4_sentimento.json', 'w', encoding='utf-8') as f:
+                ticker_clean = ticker.replace(".SA", "")
+                with open(f'{ticker_clean}_sentimento.json', 'w', encoding='utf-8') as f:
                     json.dump(resultado, f, ensure_ascii=False, indent=2)
 
                 body = json.dumps(resultado, ensure_ascii=False).encode('utf-8')
@@ -461,7 +472,7 @@ def start_server():
     try:
         with ThreadedTCPServer(("", PORT), CustomHandler) as httpd:
             print("="*55)
-            print(f"   QUANTUM FINANCE - SERVIDOR ATIVO")
+            print(f"   ITUB4 QUANTUM - SERVIDOR ATIVO")
             print(f"   http://localhost:{PORT}")
             print(f"   Servidor encerrara automaticamente ao fechar o navegador")
             print("="*55)

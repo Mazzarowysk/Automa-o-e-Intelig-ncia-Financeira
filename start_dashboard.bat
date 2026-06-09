@@ -1,10 +1,10 @@
 @echo off
-title Quantum Finance Server
+title B3 Quantum Dashboard Server
 
 cd /d "%~dp0"
 
 echo ==============================================
-echo    QUANTUM FINANCE - INICIANDO SISTEMA
+echo    B3 QUANTUM - INICIANDO SISTEMA
 echo ==============================================
 echo.
 echo Limpando servidores fantasmas antigos na porta 8000...

@@ -1,0 +1,28 @@
+{
+  "score_medio": 0.6558666666666667,
+  "classificacao": "Otimismo Extremo",
+  "noticias": [
+    {
+      "titulo": "Natura Cosmeticos SA (BSP:NATU3) Q1 2026 Earnings Call Highlights: Navigating Challenges with ...",
+      "resumo": "Despite macroeconomic hurdles, Natura Cosmeticos SA (BSP:NATU3) focuses on growth through new operational models and innovative product offerings.",
+      "score": 0.7003,
+      "data": "2026-05-13",
+      "link": "https://finance.yahoo.com/news/natura-cosmeticos-sa-bsp-natu3-010030249.html"
+    },
+    {
+      "titulo": "Natura Cosmeticos SA (BSP:NATU3) Q4 2025 Earnings Call Highlights: Strategic Divestments and ...",
+      "resumo": "Natura Cosmeticos SA reports significant EBITDA margin improvements and digital channel expansion, despite facing revenue declines in Brazil.",
+      "score": 0.4767,
+      "data": "2026-03-17",
+      "link": "https://finance.yahoo.com/news/natura-cosmeticos-sa-bsp-natu3-210043381.html"
+    },
+    {
+      "titulo": "Natura Cosmeticos SA (BSP:NATU3) Q3 2025 Earnings Call Highlights: Navigating Challenges and ...",
+      "resumo": "Despite revenue declines and macroeconomic headwinds, Natura Cosmeticos SA (BSP:NATU3) focuses on efficiency, innovation, and brand relaunches to drive future growth.",
+      "score": 0.7906,
+      "data": "2025-11-13",
+      "link": "https://finance.yahoo.com/news/natura-cosmeticos-sa-bsp-natu3-010613688.html"
+    }
+  ],
+  "atualizado_em": "2026-06-09 13:24:14"
+}

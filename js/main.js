@@ -1,8 +1,21 @@
-window.currentTicker = "ITUB4.SA";
+function getSelectedTicker() {
+    const custom = document.getElementById('custom-ticker-input');
+    if (custom && custom.value.trim() !== '') {
+        return custom.value.trim().toUpperCase();
+    }
+    const sel = document.getElementById('ticker-selector');
+    return sel ? sel.value : 'ITUB4';
+}
+function getSelectedTickerClean() {
+    return getSelectedTicker().replace('.SA', '');
+}
+
+/**
+ * B3 Quantum - Main JavaScript
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicialização
-    setupTickerSelector();
     loadMetrics();
     loadChartData();
     setupEventListeners();
@@ -12,100 +25,45 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSentimentFilters();
     initDateEnd();
     setupCollapsiblePanels();
+    
+    // Listeners para os campos de ticker
+    const sel = document.getElementById('ticker-selector');
+    const custom = document.getElementById('custom-ticker-input');
+    
+    function handleTickerChange() {
+        const t = getSelectedTickerClean();
+        if(document.getElementById('logo-ticker')) document.getElementById('logo-ticker').innerText = t;
+        if(document.getElementById('db-ticker-name')) document.getElementById('db-ticker-name').innerText = t;
+        if(document.getElementById('price-ticker-name')) {
+            const sel = document.getElementById('ticker-selector');
+            const custom = document.getElementById('custom-ticker-input');
+            let fullName = t;
+            if (custom && custom.value.trim() === '' && sel && sel.options[sel.selectedIndex]) {
+                fullName = sel.options[sel.selectedIndex].text;
+            }
+            document.getElementById('price-ticker-name').innerText = fullName;
+        }
+        
+        // Se usar o select, limpa o custom para não conflitar
+        if (this === sel && custom) {
+            custom.value = '';
+        }
+        
+        const btn = document.getElementById('btn-refresh');
+        if(btn) btn.click();
+    }
+
+    if (sel) sel.addEventListener('change', handleTickerChange);
+    if (custom) {
+        custom.addEventListener('change', handleTickerChange);
+        // Permite apertar Enter para buscar
+        custom.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleTickerChange.call(custom);
+        });
+    }
 });
 
-function setupTickerSelector() {
-    const capsules = document.querySelectorAll('.ticker-capsule-btn');
-    const customInput = document.getElementById('custom-ticker');
-    const fixCheckbox = document.getElementById('fix-ticker-default');
 
-    // 1. Carregar ticker padrão
-    const savedTicker = localStorage.getItem('default_ticker');
-    if (savedTicker) {
-        window.currentTicker = savedTicker.toUpperCase();
-        if (fixCheckbox) fixCheckbox.checked = true;
-
-        // Tentar ativar cápsula correspondente
-        let found = false;
-        capsules.forEach(btn => {
-            if (btn.dataset.symbol.toUpperCase() === window.currentTicker) {
-                btn.classList.add('active');
-                found = true;
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-
-        if (!found && customInput) {
-            customInput.value = window.currentTicker;
-        }
-    } else {
-        window.currentTicker = "ITUB4.SA"; // padrão de fábrica
-        capsules.forEach(btn => {
-            if (btn.dataset.symbol === "ITUB4.SA") btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-    }
-
-    // 2. Event Listeners para cápsulas
-    capsules.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isRetraining) return; // evitar cliques múltiplos enquanto treina
-            capsules.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (customInput) customInput.value = '';
-            
-            window.currentTicker = btn.dataset.symbol;
-            
-            if (fixCheckbox && fixCheckbox.checked) {
-                localStorage.setItem('default_ticker', window.currentTicker);
-            }
-
-            // Disparar automaticamente o cálculo do modelo para a ação selecionada
-            const btnRetrain = document.getElementById('btn-retrain');
-            if (btnRetrain) btnRetrain.click();
-        });
-    });
-
-    // 3. Event Listener para custom input
-    if (customInput) {
-        customInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (isRetraining) return;
-                const val = customInput.value.toUpperCase().trim();
-                if (val) {
-                    capsules.forEach(b => b.classList.remove('active'));
-                    window.currentTicker = val;
-                    
-                    if (fixCheckbox && fixCheckbox.checked) {
-                        localStorage.setItem('default_ticker', window.currentTicker);
-                    }
-
-                    // Disparar automaticamente o cálculo do modelo
-                    const btnRetrain = document.getElementById('btn-retrain');
-                    if (btnRetrain) btnRetrain.click();
-                }
-            }
-        });
-    }
-
-    // 4. Event Listener para checkbox de fixar
-    if (fixCheckbox) {
-        fixCheckbox.addEventListener('change', () => {
-            if (fixCheckbox.checked) {
-                localStorage.setItem('default_ticker', window.currentTicker);
-            } else {
-                localStorage.removeItem('default_ticker');
-            }
-        });
-    }
-}
-
-/**
- * Renderiza os dados de sentimento nos elementos HTML.
- * Aceita o objeto de dados diretamente (do cache JSON ou da API).
- */
 function renderSentimentData(data) {
     const statusEl = document.getElementById('sentiment-status');
     const scoreTextEl = document.getElementById('sentiment-score-text');
@@ -217,7 +175,7 @@ function renderSentimentData(data) {
  */
 async function loadSentimentData() {
     try {
-        const response = await fetch('itub4_sentimento.json?t=' + Date.now());
+        const response = await fetch(getSelectedTickerClean() + '_sentimento.json?t=' + Date.now());
         if (!response.ok) throw new Error('JSON não encontrado');
         const data = await response.json();
         renderSentimentData(data);
@@ -241,7 +199,7 @@ async function fetchSentimentByPeriod(startDate, endDate) {
     statusEl.textContent = 'Buscando...';
 
     try {
-        const body = JSON.stringify({ start: startDate, end: endDate, ticker: window.currentTicker });
+        const body = JSON.stringify({ start: startDate, end: endDate, ticker: getSelectedTicker() });
         const response = await fetch('/sentiment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -611,7 +569,7 @@ function setupEventListeners() {
         if (!realPriceChartInstance || !ma20ChartInstance || !xgbForecastChartInstance || !predictionPointsChartInstance) return;
 
         let title = '';
-        if (chartId === 'realPriceChart') { title = 'Preço Real (ITUB4)'; }
+        if (chartId === 'realPriceChart') { title = 'Preço Real'; }
         else if (chartId === 'ma20Chart') { title = 'Média Móvel (20d)'; }
         else if (chartId === 'xgbForecastChart') { title = 'Previsão IA (XGBoost)'; }
         else if (chartId === 'predictionPointsChart') { title = 'Pontos de Previsão'; }
@@ -882,7 +840,7 @@ function buildModalData() {
     if (r2Raw > 0.5) {
         r2Nivel = 'EXCELENTE';
         r2Cor = '#10b981';
-        r2Analise = `Com <strong>${r2Pct}%</strong> de poder explicativo, o modelo XGBoost está capturando mais da metade de toda a variância dos preços da ITUB4. Isso é <strong>excepcional</strong> para renda variável, onde a aleatoriedade domina. Os indicadores técnicos (RSI, Bollinger, Volatilidade, Volume) estão funcionando como preditores muito fortes.`;
+        r2Analise = `Com <strong>${r2Pct}%</strong> de poder explicativo, o modelo XGBoost está capturando mais da metade de toda a variância dos preços da ação. Isso é <strong>excepcional</strong> para renda variável, onde a aleatoriedade domina. Os indicadores técnicos (RSI, Bollinger, Volatilidade, Volume) estão funcionando como preditores muito fortes.`;
         r2Contexto = `Para contexto: fundos quantitativos profissionais costumam operar com modelos entre 5% e 30% de R². Seu modelo está significativamente acima dessa faixa.`;
         r2Sugestoes = `✅ O modelo está em excelente forma. Mantenha os dados atualizados e monitore a Acurácia Direcional para confirmar que a qualidade se mantém ao longo do tempo.`;
     } else if (r2Raw > 0.15) {
@@ -1047,29 +1005,11 @@ function updateTimestamp() {
  */
 async function loadMetrics() {
     try {
-        const res = await fetch('itub4_metricas.json?' + new Date().getTime());
+        const ticker = getSelectedTickerClean();
+        const res = await fetch(`${ticker}_metricas.json?${new Date().getTime()}`);
         if (!res.ok) throw new Error("JSON não encontrado");
         
         const data = await res.json();
-        
-        // Atualizar labels de ativos dinamicamente
-        if (data.ticker_info) {
-            const sym = data.ticker_info.symbol;
-            const name = data.ticker_info.name || sym;
-            
-            const lblName = document.getElementById('lbl-asset-name');
-            if (lblName) lblName.innerText = `${name} (${sym})`;
-            
-            const tooltipPrice = document.getElementById('tooltip-asset-price');
-            if (tooltipPrice) {
-                tooltipPrice.title = `Último preço de fechamento registrado no histórico de ${name} (${sym}) com a respectiva variação percentual em relação ao pregão anterior.`;
-            }
-            
-            const tooltipSent = document.getElementById('tooltip-sentiment');
-            if (tooltipSent) {
-                tooltipSent.title = `O sentimento do mercado é calculado usando NLP (Inteligência Artificial) lendo as últimas notícias relacionadas a ${name} (${sym}). Filtre por período para ver como o sentimento evoluiu ao longo do tempo.`;
-            }
-        }
         
         // Encontrar o melhor modelo (geralmente XGBoost Otimizado)
         let bestModelKey = Object.keys(data)[0];
@@ -1139,12 +1079,13 @@ async function loadMetrics() {
 async function loadChartData() {
     try {
         const timestamp = new Date().getTime();
-        const historyPromise = fetch(`itub4_processado_final.csv?${timestamp}`).then(async res => {
+        const ticker = getSelectedTickerClean();
+        const historyPromise = fetch(`${ticker}_processado_final.csv?${timestamp}`).then(async res => {
             if (!res.ok) throw new Error('CSV histórico não encontrado');
             return res.text();
         });
 
-        const predictionPromise = fetch(`itub4_previsoes_finais.csv?${timestamp}`).then(async res => {
+        const predictionPromise = fetch(`${ticker}_previsoes_finais.csv?${timestamp}`).then(async res => {
             if (!res.ok) return null;
             return res.text();
         }).catch(() => null);
@@ -1196,7 +1137,8 @@ function updateCurrentPriceAndRSI() {
             const varPct = ((lastRow.Close / prevRow.Close) - 1) * 100;
             const descPrice = document.getElementById('desc-price');
             const dateStr = lastRow.Date ? formatDateLabel(lastRow.Date) : '';
-            descPrice.innerHTML = `${varPct > 0 ? '+' : ''}${varPct.toFixed(2)}% vs Ontem <span style="opacity: 0.75; font-size: 0.75rem; display: block; margin-top: 4px;">(${dateStr})</span>`;
+            const prevDateStr = prevRow.Date ? formatDateLabel(prevRow.Date) : 'Ontem';
+            descPrice.innerHTML = `${varPct > 0 ? '+' : ''}${varPct.toFixed(2)}% vs ${prevDateStr} <span style="font-size: 0.85em; opacity: 0.85;">(R$ ${prevRow.Close.toFixed(2)})</span> <span style="opacity: 0.75; font-size: 0.75rem; display: block; margin-top: 4px;">Fechamento de: ${dateStr}</span>`;
             descPrice.className = `kpi-desc ${varPct >= 0 ? 'text-success' : 'text-danger'}`;
         }
     }
@@ -1362,7 +1304,7 @@ function drawPriceChart() {
             labels: labels,
             datasets: [
                 {
-                    label: `Preço Real (${window.currentTicker || 'Ativo'})`,
+                    label: 'Preço Real',
                     data: closePrices,
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.08)',
@@ -1651,7 +1593,7 @@ function drawTechCharts() {
             labels: labels,
             datasets: [
                 {
-                    label: `Preço Real (${window.currentTicker || 'Ativo'})`,
+                    label: 'Preço Real',
                     data: closePrices,
                     borderColor: '#1d4ed8',
                     backgroundColor: 'rgba(29, 78, 216, 0.16)',
@@ -2267,9 +2209,11 @@ function setupTrainingPanel() {
         if (isRetraining) return; // Impedir duplo clique
 
         const start = startInput.value;
-        const end = endInput.value;
+        // Se endInput estiver desabilitado (modo predefinido: 7d, all, etc), não enviamos end
+        const useEnd = !endInput.disabled;
+        const end = useEnd ? endInput.value : undefined;
 
-        if (!start || !end) {
+        if (!start || (useEnd && !end)) {
             alert('Por favor, selecione as datas de início e fim.');
             return;
         }
@@ -2281,7 +2225,11 @@ function setupTrainingPanel() {
         const sentimentEnd = document.getElementById('sentiment-end');
         if (sentimentStart && sentimentEnd) {
             sentimentStart.value = start;
-            sentimentEnd.value = end;
+            if (useEnd) {
+                sentimentEnd.value = end;
+            } else {
+                sentimentEnd.value = new Date().toISOString().split('T')[0]; // Apenas visual
+            }
             // Atualizar UI dos botoes de sentimento para "Personalizado"
             const sentimentBtns = document.querySelectorAll('[data-sentiment-period]');
             sentimentBtns.forEach(b => b.classList.remove('active'));
@@ -2304,10 +2252,15 @@ function setupTrainingPanel() {
         }
 
         try {
+            const payload = { start, ticker: getSelectedTicker() };
+            if (useEnd && end) {
+                payload.end = end;
+            }
+
             const response = await fetch('/retrain', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start, end, ticker: window.currentTicker })
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
@@ -2469,7 +2422,7 @@ function setupAnalystDiary() {
                         <span class="diary-date"><i class="fa-regular fa-clock"></i> ${entry.dateFormatted}</span>
                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
                             <span class="diary-price-badge" style="${badgeStyle}"><i class="fa-solid ${badgeIcon}"></i> Viés: ${entry.sentiment.toUpperCase()}</span>
-                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ${entry.ticker || 'ITUB4'}: R$ ${entry.price}</span>` : ''}
+                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ITUB4: R$ ${entry.price}</span>` : ''}
                         </div>
                     </div>
                     <button class="btn-delete-diary" data-id="${entry.id}" title="Excluir anotação"><i class="fa-solid fa-trash-can"></i></button>
@@ -2516,8 +2469,7 @@ function setupAnalystDiary() {
             dateFormatted: dateFormatted,
             sentiment: currentSentiment,
             content: content,
-            price: currentPrice,
-            ticker: window.currentTicker || 'ITUB4'
+            price: currentPrice
         };
 
         const entries = JSON.parse(localStorage.getItem('itub4_diary_entries') || '[]');

@@ -2537,11 +2537,22 @@ window.updateConfluencePanel = function() {
     }
 
     // Configurar o gatilho de clique expansível (se ainda não tiver)
-    const confPanel = document.getElementById('confluence-panel');
+        const confPanel = document.getElementById('confluence-panel');
     const confDetails = document.getElementById('confluence-details');
     const confArrow = document.getElementById('confluence-arrow');
+    const confBadge = document.getElementById('confluence-badge');
     if (confPanel && confDetails && !confPanel.dataset.clickableSet) {
         confPanel.dataset.clickableSet = "true";
+        
+        if(confBadge) {
+            confBadge.style.cursor = 'pointer';
+            confBadge.title = 'Clique para ver detalhes do Cenário';
+            confBadge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirModalConfluencia();
+            });
+        }
+
         confPanel.addEventListener('click', () => {
             if (confDetails.style.display === 'none') {
                 confDetails.style.display = 'block';
@@ -2559,6 +2570,7 @@ window.updateConfluencePanel = function() {
     // Lógica de Confluência
     if (aiTrend === 1 && sentTrend === 1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-angles-up"></i> COMPRA FORTE';
+        badgeEl.dataset.scenario = 'alta';
         badgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
         badgeEl.style.color = '#10b981';
         badgeEl.style.border = '1px solid #10b981';
@@ -2566,6 +2578,7 @@ window.updateConfluencePanel = function() {
     } 
     else if (aiTrend === -1 && sentTrend === -1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-angles-down"></i> VENDA FORTE';
+        badgeEl.dataset.scenario = 'queda';
         badgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
         badgeEl.style.color = '#ef4444';
         badgeEl.style.border = '1px solid #ef4444';
@@ -2573,6 +2586,7 @@ window.updateConfluencePanel = function() {
     }
     else if (aiTrend === 1 && sentTrend === -1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
+        badgeEl.dataset.scenario = 'risco_alta_ia';
         badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
         badgeEl.style.color = '#f59e0b';
         badgeEl.style.border = '1px solid #f59e0b';
@@ -2580,6 +2594,7 @@ window.updateConfluencePanel = function() {
     }
     else if (aiTrend === -1 && sentTrend === 1) {
         badgeEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ALERTA DE RISCO';
+        badgeEl.dataset.scenario = 'risco_queda_ia';
         badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
         badgeEl.style.color = '#f59e0b';
         badgeEl.style.border = '1px solid #f59e0b';
@@ -2587,6 +2602,7 @@ window.updateConfluencePanel = function() {
     }
     else {
         badgeEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> SINAL NEUTRO';
+        badgeEl.dataset.scenario = 'neutro';
         badgeEl.style.background = 'rgba(148, 163, 184, 0.2)';
         badgeEl.style.color = '#94a3b8';
         badgeEl.style.border = '1px solid #94a3b8';
@@ -2685,4 +2701,82 @@ function setupCollapsiblePanels() {
             }
         });
     });
+}
+
+
+window.abrirModalConfluencia = function() {
+    const badgeEl = document.getElementById('confluence-badge');
+    if (!badgeEl) return;
+    const scenario = badgeEl.dataset.scenario || 'neutro';
+    
+    const title = 'Análise Detalhada do Cenário';
+    let icon = '<i class="fa-solid fa-microscope"></i>';
+    let content = '';
+
+    if (scenario === 'alta') {
+        content = `
+            <div class="modal-insights">
+                <h4 style="color: #10b981;"><i class="fa-solid fa-rocket"></i> Confluência de Alta (Sinal Forte)</h4>
+                <p><strong>O que significa:</strong> A Inteligência Artificial identificou um padrão matemático de valorização e o mercado (Notícias) também está otimista com a empresa.</p>
+                <p><strong>Por que este alerta:</strong> Quando ambos os sinais apontam na mesma direção, a probabilidade estatística de acerto do movimento de alta é significativamente maior. Os grandes investidores (institucionais) geralmente agem nesses momentos.</p>
+                <p><strong>Risco:</strong> Baixo-Médio. A inércia do mercado está a favor da matemática.</p>
+            </div>
+        `;
+    } else if (scenario === 'queda') {
+        content = `
+            <div class="modal-insights">
+                <h4 style="color: #ef4444;"><i class="fa-solid fa-arrow-trend-down"></i> Confluência de Queda (Sinal Forte)</h4>
+                <p><strong>O que significa:</strong> A IA projetou desvalorização matemática baseada no histórico, e as notícias recentes sobre a empresa são majoritariamente pessimistas.</p>
+                <p><strong>Por que este alerta:</strong> É um sinal de alerta vermelho. Indica que não é um bom momento para compra (faca caindo). Traders podem usar este cenário para operações de venda a descoberto (Short).</p>
+                <p><strong>Risco:</strong> Baixo-Médio para quem está de fora. Alto para quem está comprado.</p>
+            </div>
+        `;
+    } else if (scenario === 'risco_alta_ia') {
+        content = `
+            <div class="modal-insights">
+                <h4 style="color: #f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Alerta de Risco (Divergência)</h4>
+                <p><strong>O que significa:</strong> O gráfico e a matemática (IA) mostram que a ação deveria subir. Porém, as notícias de mercado estão PESSIMISTAS.</p>
+                <p><strong>Por que este alerta:</strong> O mercado é emocional. Mesmo que a ação esteja matematicamente barata, notícias ruins podem causar pânico e os investidores vão ignorar a análise técnica e vender. O sinal técnico de alta pode falhar.</p>
+                <p><strong>Ação recomendada:</strong> Cautela. Melhor aguardar o sentimento do mercado melhorar antes de confiar na IA.</p>
+            </div>
+        `;
+    } else if (scenario === 'risco_queda_ia') {
+        content = `
+            <div class="modal-insights">
+                <h4 style="color: #f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Alerta de Risco (Divergência)</h4>
+                <p><strong>O que significa:</strong> A matemática (IA) projeta uma queda ou correção, mas o mercado está em euforia com boas notícias (Otimista).</p>
+                <p><strong>Por que este alerta:</strong> A ação pode continuar subindo irracionalmente devido ao fator psicológico (FOMO - Fear Of Missing Out), contrariando a matemática que diz que ela está cara.</p>
+                <p><strong>Ação recomendada:</strong> Cautela com vendas a descoberto. Operar contra a manada eufórica é perigoso, mesmo que a IA alerte sobrepreço.</p>
+            </div>
+        `;
+    } else {
+        content = `
+            <div class="modal-insights">
+                <h4 style="color: #94a3b8;"><i class="fa-solid fa-scale-balanced"></i> Sinal Neutro</h4>
+                <p><strong>O que significa:</strong> A Inteligência Artificial não encontrou um padrão direcional forte, ou as notícias estão neutras/mistas, anulando-se mutuamente.</p>
+                <p><strong>Por que este alerta:</strong> O mercado está indeciso. Nenhuma das forças (técnica ou fundamentalista/notícias) tem força suficiente para ditar uma tendência agressiva agora.</p>
+            </div>
+        `;
+    }
+
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-value').innerHTML = badgeEl.innerHTML; 
+    document.getElementById('modal-icon').innerHTML = icon;
+    
+    // Configurar cor do valor modal
+    const valueEl = document.getElementById('modal-value');
+    if (scenario === 'alta') valueEl.className = 'modal-value-large text-success';
+    else if (scenario === 'queda') valueEl.className = 'modal-value-large text-danger';
+    else if (scenario.includes('risco')) valueEl.className = 'modal-value-large text-warning';
+    else valueEl.className = 'modal-value-large text-muted';
+
+    valueEl.style.fontSize = '1.2rem';
+    valueEl.style.display = 'inline-block';
+    valueEl.style.padding = '8px 16px';
+    valueEl.style.borderRadius = '6px';
+    valueEl.style.background = badgeEl.style.background || 'rgba(255,255,255,0.1)';
+    valueEl.style.border = badgeEl.style.border || '1px solid #cbd5e1';
+
+    document.getElementById('modal-body').innerHTML = content;
+    document.getElementById('kpi-modal').classList.add('active');
 }

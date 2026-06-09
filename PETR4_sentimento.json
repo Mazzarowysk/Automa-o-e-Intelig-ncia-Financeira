@@ -2,11 +2,5 @@
   "score_medio": 0.0,
   "classificacao": "Neutro",
   "noticias": [],
-  "periodo": {
-    "inicio": "2000-12-21",
-    "fim": "2026-06-09"
-  },
-  "fonte": "Alpha Vantage",
-  "atualizado_em": "2026-06-09 11:52:40",
-  "erro": "Nenhuma notícia retornada pela Alpha Vantage para este período."
+  "atualizado_em": "2026-06-09 14:20:39"
 }

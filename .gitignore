@@ -25,3 +25,9 @@ venv/
 
 # Configuração local com chaves de API (não enviar ao GitHub!)
 config.py
+
+# Arquivos de dados (não enviar banco de dados ou planilhas)
+*.csv
+*.json
+*.db
+dados/

@@ -18,10 +18,10 @@
     }
   ],
   "periodo": {
-    "inicio": "2026-06-02",
-    "fim": "2026-06-09"
+    "inicio": "2026-06-03",
+    "fim": "2026-06-10"
   },
   "fonte": "Yahoo Finance + VADER NLP",
-  "atualizado_em": "2026-06-09 17:27:30",
+  "atualizado_em": "2026-06-10 00:20:07",
   "erro": "Limite da API atingido: We have detected your API key as 1IZ0U9QHYC3TQVE8 and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits. (Buscando dados alternativos...)"
 }

@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- noUiSlider CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     <!-- PapaParse -->
@@ -19,6 +21,8 @@
     <!-- Chart.js Zoom Plugin -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <!-- noUiSlider JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -301,6 +305,10 @@
                     <div class="canvas-wrapper">
                         <canvas id="priceChart"></canvas>
                     </div>
+                    <!-- Range Slider -->
+                    <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                        <div id="price-slider"></div>
+                    </div>
                 </div>
 
                 <!-- RSI Chart -->
@@ -329,6 +337,10 @@
                     </div>
                     <div class="canvas-wrapper">
                         <canvas id="rsiChart"></canvas>
+                    </div>
+                    <!-- Range Slider -->
+                    <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                        <div id="rsi-slider"></div>
                     </div>
                 </div>
 
@@ -363,6 +375,9 @@
                             <div class="canvas-wrapper">
                                 <canvas id="realPriceChart"></canvas>
                             </div>
+                            <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                                <div id="real-price-slider"></div>
+                            </div>
                         </div>
                         <div class="chart-container glass-panel">
                             <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -371,6 +386,9 @@
                             </div>
                             <div class="canvas-wrapper">
                                 <canvas id="ma20Chart"></canvas>
+                            </div>
+                            <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                                <div id="ma20-slider"></div>
                             </div>
                         </div>
                         <div class="chart-container glass-panel">
@@ -381,6 +399,9 @@
                             <div class="canvas-wrapper">
                                 <canvas id="xgbForecastChart"></canvas>
                             </div>
+                            <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                                <div id="xgb-forecast-slider"></div>
+                            </div>
                         </div>
                         <div class="chart-container glass-panel">
                             <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -389,6 +410,9 @@
                             </div>
                             <div class="canvas-wrapper">
                                 <canvas id="predictionPointsChart"></canvas>
+                            </div>
+                            <div class="chart-slider-wrapper" style="padding: 10px 20px 20px 20px;">
+                                <div id="prediction-points-slider"></div>
                             </div>
                         </div>
                     </div>
@@ -473,9 +497,9 @@
 
     <!-- Modal for Expanded Chart -->
     <div id="chart-expand-modal" class="modal-overlay">
-        <div class="modal-content glass-panel" style="width: 95vw; height: 90vh; max-width: none; max-height: none; display: flex; flex-direction: column;">
+        <div class="modal-content glass-panel" style="width: 90vw; height: 85vh; max-width: none; max-height: none; display: flex; flex-direction: column;">
             <button class="btn-close-modal" id="btn-close-expanded"><i class="fa-solid fa-xmark"></i></button>
-            <div class="modal-header" style="margin-bottom: 1rem; padding-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div class="modal-header" style="margin-bottom: 1rem; padding-bottom: 1rem; padding-right: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div class="modal-header-text">
                     <h2 id="expanded-chart-title" style="font-size: 1.5rem; color: var(--accent-blue);">Visualização Detalhada</h2>
                 </div>
@@ -496,8 +520,13 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-body" style="flex: 1; min-height: 0; position: relative;">
-                <canvas id="expandedChart"></canvas>
+            <div class="modal-body" style="flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column;">
+                <div style="flex: 1; min-height: 0; position: relative;">
+                    <canvas id="expandedChart"></canvas>
+                </div>
+                <div style="flex-shrink: 0; padding: 15px 20px 5px 20px;">
+                    <div id="expanded-chart-slider" class="range-slider"></div>
+                </div>
             </div>
         </div>
     </div>

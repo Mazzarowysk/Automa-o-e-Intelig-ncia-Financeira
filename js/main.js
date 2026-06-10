@@ -17,6 +17,7 @@ function getSelectedTickerClean() {
 document.addEventListener('DOMContentLoaded', () => {
     // Inicialização
     loadMetrics();
+    loadSentimentData();
     loadChartData();
     setupEventListeners();
     setupTrainingPanel();
@@ -43,6 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             document.getElementById('price-ticker-name').innerText = fullName;
         }
+        document.title = `${t} - Inteligência Financeira`;
+        
+        if (window.refreshDiary) window.refreshDiary();
         
         // Se usar o select, limpa o custom para não conflitar
         if (this === sel && custom) {
@@ -112,6 +116,9 @@ function renderSentimentData(data) {
     if (typeof updateConfluencePanel === 'function') {
         updateConfluencePanel();
     }
+    
+    if (typeof drawPriceChart === 'function') drawPriceChart();
+    if (typeof drawTechCharts === 'function') drawTechCharts();
 
     const countEl = document.getElementById('sentiment-news-count');
     if (countEl) countEl.textContent = newsCount;
@@ -171,12 +178,13 @@ function renderSentimentData(data) {
 }
 
 /**
- * Carrega sentimento do cache local (itub4_sentimento.json).
+ * Carrega sentimento da API.
  */
 async function loadSentimentData() {
     try {
-        const response = await fetch(getSelectedTickerClean() + '_sentimento.json?t=' + Date.now());
-        if (!response.ok) throw new Error('JSON não encontrado');
+        const ticker = getSelectedTickerClean();
+        const response = await fetch(`/api/sentiment?ticker=${ticker}&t=${Date.now()}`);
+        if (!response.ok) throw new Error('Falha no carregamento (API)');
         const data = await response.json();
         renderSentimentData(data);
     } catch (e) {
@@ -630,11 +638,21 @@ function setupEventListeners() {
             if (sourceOptions.scales && sourceOptions.scales.x) sourceOptions.scales.x.ticks.font = {size: 14};
             if (sourceOptions.scales && sourceOptions.scales.y) sourceOptions.scales.y.ticks.font = {size: 14};
             
+            // Add extra padding to give the legend breathing room
+            sourceOptions.layout = sourceOptions.layout || {};
+            sourceOptions.layout.padding = { top: 30, right: 30, bottom: 20, left: 20 };
+            
             // Ativar zoom no expanded chart
             sourceOptions.plugins = sourceOptions.plugins || {};
             sourceOptions.plugins.zoom = {
-                pan: { enabled: true, mode: 'x' },
-                zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                pan: { 
+                    enabled: true, mode: 'x',
+                    onPan: ({chart}) => updateSliderFromChart('expanded-chart-slider', chart)
+                },
+                zoom: { 
+                    wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                    onZoom: ({chart}) => updateSliderFromChart('expanded-chart-slider', chart)
+                }
             };
 
             const pluginsToCopy = [...xgbForecastChartInstance.config.plugins];
@@ -648,6 +666,47 @@ function setupEventListeners() {
                 options: sourceOptions,
                 plugins: pluginsToCopy
             });
+            
+            // Adicionar wheel customizado
+            const canvas = document.getElementById('expandedChart');
+            if (canvas && !canvas.__techWheelZoom) {
+                canvas.addEventListener('wheel', (event) => {
+                    const instance = Chart.getChart(canvas);
+                    if (!instance || !instance.scales || !instance.scales.x) return;
+                    event.preventDefault();
+                    const total = instance.data.labels.length;
+                    const currentMin = Number.isFinite(instance.options.scales.x.min) ? instance.options.scales.x.min : 0;
+                    const currentMax = Number.isFinite(instance.options.scales.x.max) ? instance.options.scales.x.max : total - 1;
+                    const currentRange = Math.max(5, currentMax - currentMin);
+                    const zoomStep = Math.max(1, Math.round(currentRange * 0.18));
+                    const newRange = event.deltaY < 0 ? Math.max(5, currentRange - zoomStep) : Math.min(total - 1, currentRange + zoomStep);
+                    const rect = canvas.getBoundingClientRect();
+                    const xPixel = event.clientX - rect.left;
+                    let centerValue = instance.scales.x.getValueForPixel ? instance.scales.x.getValueForPixel(xPixel) : currentMin + currentRange / 2;
+                    if (typeof centerValue !== 'number' || isNaN(centerValue)) centerValue = currentMin + currentRange / 2;
+                    let newMin = Math.round(centerValue - newRange / 2);
+                    let newMax = Math.round(centerValue + newRange / 2);
+                    if (newMin < 0) { newMin = 0; newMax = newRange; }
+                    if (newMax > total - 1) { newMax = total - 1; newMin = Math.max(0, newMax - newRange); }
+                    instance.options.scales.x.min = newMin;
+                    instance.options.scales.x.max = newMax;
+                    instance.update('none');
+                    updateSliderFromChart('expanded-chart-slider', instance);
+                }, { passive: false });
+                
+                canvas.addEventListener('dblclick', () => {
+                    const instance = Chart.getChart(canvas);
+                    if(!instance) return;
+                    instance.options.scales.x.min = undefined;
+                    instance.options.scales.x.max = undefined;
+                    instance.update('none');
+                    updateSliderFromChart('expanded-chart-slider', instance);
+                });
+                canvas.__techWheelZoom = true;
+            }
+            
+            // Sync initial slider
+            syncSlider('expanded-chart-slider', expandedChartInstance, globalData.history);
         }
     }
 
@@ -822,6 +881,14 @@ function refreshChartsOnTab(targetId) {
                 chart.update('none');
             }
         });
+        
+        // Sincronizar as barras deslizantes quando a aba se tornar visível
+        if (targetId === 'tech' && window.globalData && window.globalData.history) {
+            if (window.realPriceChartInstance) syncSlider('real-price-slider', window.realPriceChartInstance, window.globalData.history);
+            if (window.ma20ChartInstance) syncSlider('ma20-slider', window.ma20ChartInstance, window.globalData.history);
+            if (window.xgbForecastChartInstance) syncSlider('xgb-forecast-slider', window.xgbForecastChartInstance, window.globalData.history);
+            if (window.predictionPointsChartInstance) syncSlider('prediction-points-slider', window.predictionPointsChartInstance, window.globalData.history);
+        }
     });
 }
 
@@ -846,7 +913,7 @@ function buildModalData() {
     } else if (r2Raw > 0.15) {
         r2Nivel = 'BOM';
         r2Cor = '#22d3ee';
-        r2Analise = `Com <strong>${r2Pct}%</strong> de poder explicativo, o modelo está capturando uma parcela significativa das tendências de preço da ITUB4. Esse resultado indica que os indicadores técnicos do algoritmo (RSI, Bollinger, Médias Móveis) estão conseguindo <strong>identificar padrões reais</strong> no comportamento do ativo.`;
+        r2Analise = `Com <strong>${r2Pct}%</strong> de poder explicativo, o modelo está capturando uma parcela significativa das tendências de preço do ativo ${getSelectedTickerClean()}. Esse resultado indica que os indicadores técnicos do algoritmo (RSI, Bollinger, Médias Móveis) estão conseguindo <strong>identificar padrões reais</strong> no comportamento do ativo.`;
         r2Contexto = `Para referência: a maioria dos modelos de machine learning aplicados ao mercado financeiro opera na faixa de 5% a 30% de R². Seu resultado está dentro ou acima dessa faixa de mercado.`;
         r2Sugestoes = `💡 <strong>Sugestão:</strong> Experimente adicionar features macroeconômicas (taxa Selic, dólar, IBOVESPA) ou aumentar o histórico de treinamento para potencializar esse resultado.`;
     } else if (r2Raw > 0) {
@@ -870,7 +937,7 @@ function buildModalData() {
     }
 
     const r2Desc = `
-        <p>O <strong>R² (R-Quadrado)</strong> mede o quanto da variação total do preço da ITUB4 é explicada pelo modelo XGBoost. É a métrica que responde: <em>"Os indicadores técnicos realmente conseguem prever esse ativo?"</em></p>
+        <p>O <strong>R² (R-Quadrado)</strong> mede o quanto da variação total do preço do ativo ${getSelectedTickerClean()} é explicada pelo modelo XGBoost. É a métrica que responde: <em>"Os indicadores técnicos realmente conseguem prever esse ativo?"</em></p>
         <div class="modal-insights">
             <h4><i class="fa-solid fa-stethoscope"></i> Diagnóstico: <span style="color:${r2Cor}">${r2Nivel}</span></h4>
             <p>${r2Analise}</p>
@@ -900,12 +967,12 @@ function buildModalData() {
     if (rsiVal >= 70) {
         rsiZona = 'SOBRECOMPRADO';
         rsiCor = '#ef4444';
-        rsiAnalise = `O RSI atual de <strong>${rsiVal.toFixed(1)}</strong> está acima de 70, indicando que a ITUB4 subiu <strong>muito rápido</strong> nos últimos 14 pregões. Historicamente, isso precede correções de preço.`;
+        rsiAnalise = `O RSI atual de <strong>${rsiVal.toFixed(1)}</strong> está acima de 70, indicando que o ativo ${getSelectedTickerClean()} subiu <strong>muito rápido</strong> nos últimos 14 pregões. Historicamente, isso precede correções de preço.`;
         rsiAcao = `⚠️ Considere <strong>realizar lucros</strong> ou aguardar confirmação de reversão antes de novas compras.`;
     } else if (rsiVal <= 30) {
         rsiZona = 'SOBREVENDIDO';
         rsiCor = '#10b981';
-        rsiAnalise = `O RSI atual de <strong>${rsiVal.toFixed(1)}</strong> está abaixo de 30, indicando que a ITUB4 sofreu <strong>quedas excessivas</strong> nos últimos 14 pregões. Historicamente, isso representa oportunidades de compra.`;
+        rsiAnalise = `O RSI atual de <strong>${rsiVal.toFixed(1)}</strong> está abaixo de 30, indicando que o ativo ${getSelectedTickerClean()} sofreu <strong>quedas excessivas</strong> nos últimos 14 pregões. Historicamente, isso representa oportunidades de compra.`;
         rsiAcao = `💡 Possível <strong>oportunidade de entrada</strong>. Aguarde sinais de reversão (RSI cruzando acima de 30) para maior segurança.`;
     } else {
         rsiZona = 'NEUTRO';
@@ -944,7 +1011,7 @@ function buildModalData() {
     }
 
     const accDesc = `
-        <p>A <strong>Acurácia de Direção</strong> responde: "De todas as vezes que o modelo disse que a ITUB4 ia subir (ou cair), em quantas ele acertou?"</p>
+        <p>A <strong>Acurácia de Direção</strong> responde: "De todas as vezes que o modelo disse que o ativo ${getSelectedTickerClean()} ia subir (ou cair), em quantas ele acertou?"</p>
         <div class="modal-insights">
             <h4><i class="fa-solid fa-stethoscope"></i> Diagnóstico: <span style="color:${accCor}">${accNivel}</span></h4>
             <p>${accAnalise}</p>
@@ -979,7 +1046,7 @@ function buildModalData() {
         </div>`;
 
     return {
-        mae: { title: "MAE (Erro Médio Absoluto)", icon: "fa-calculator", valId: "val-mae", desc: `<p>O <strong>MAE</strong> mede o erro médio absoluto das previsões do modelo em reais. Ele mostra, em média, quanto as previsões do XGBoost se desviam do preço de fechamento real da ITUB4.</p>
+        mae: { title: "MAE (Erro Médio Absoluto)", icon: "fa-calculator", valId: "val-mae", desc: `<p>O <strong>MAE</strong> mede o erro médio absoluto das previsões do modelo em reais. Ele mostra, em média, quanto as previsões do XGBoost se desviam do preço de fechamento real do ativo ${getSelectedTickerClean()}.</p>
             <div class="modal-insights">
                 <h4><i class="fa-solid fa-scale-balanced"></i> Interpretação</h4>
                 <p>Um MAE mais baixo indica previsões mais próximas do valor real. Como estamos trabalhando com preços de ações, um MAE menor que R$ 2 costuma ser considerado competitivo para horizontes de curto prazo.</p>
@@ -1001,28 +1068,15 @@ function updateTimestamp() {
 }
 
 /**
- * Carrega o JSON de Métricas (itub4_metricas.json)
+ * Carrega o JSON de Métricas
  */
 async function loadMetrics() {
     try {
         const ticker = getSelectedTickerClean();
-        const res = await fetch(`${ticker}_metricas.json?${new Date().getTime()}`);
+        const res = await fetch(`/api/metrics?ticker=${ticker}&t=${new Date().getTime()}`);
         if (!res.ok) throw new Error("JSON não encontrado");
         
-        const data = await res.json();
-        
-        // Encontrar o melhor modelo (geralmente XGBoost Otimizado)
-        let bestModelKey = Object.keys(data)[0];
-        let bestMae = Number.POSITIVE_INFINITY;
-        
-        for (const [key, metrics] of Object.entries(data)) {
-            if (metrics.MAE !== undefined && metrics.MAE < bestMae) {
-                bestMae = metrics.MAE;
-                bestModelKey = key;
-            }
-        }
-        
-        const bestModel = data[bestModelKey] || {};
+                const bestModel = await res.json();
         globalData.metrics = bestModel;
         
         // Atualizar MAE
@@ -1074,41 +1128,40 @@ async function loadMetrics() {
 }
 
 /**
- * Carrega os CSVs (Histórico e Previsões)
+ * Carrega os Dados Historicos e Previsoes da API (SQLite)
  */
 async function loadChartData() {
     try {
         const timestamp = new Date().getTime();
         const ticker = getSelectedTickerClean();
-        const historyPromise = fetch(`${ticker}_processado_final.csv?${timestamp}`).then(async res => {
-            if (!res.ok) throw new Error('CSV histórico não encontrado');
-            return res.text();
+        
+        const historyPromise = fetch(`/api/history?ticker=${ticker}&t=${timestamp}`).then(res => {
+            if (!res.ok) throw new Error('Histórico não encontrado');
+            return res.json();
         });
 
-        const predictionPromise = fetch(`${ticker}_previsoes_finais.csv?${timestamp}`).then(async res => {
-            if (!res.ok) return null;
-            return res.text();
-        }).catch(() => null);
+        const predictionPromise = fetch(`/api/predictions?ticker=${ticker}&t=${timestamp}`).then(res => {
+            if (!res.ok) return [];
+            return res.json();
+        }).catch(() => []);
 
-        const [textHist, textPrev] = await Promise.all([historyPromise, predictionPromise]);
-        const resultsHist = Papa.parse(textHist, { header: true, dynamicTyping: true });
-        const allData = resultsHist.data.filter(row => row.Date && row.Close);
-        globalData.history = allData;
+        const [histData, prevData] = await Promise.all([historyPromise, predictionPromise]);
+        
+        globalData.history = histData.filter(row => row.Date && row.Close !== null && row.Close !== undefined);
 
         if (globalData.history.length > 0) {
-            const firstDate = formatDateLabel(allData[0].Date);
-            const lastDate = formatDateLabel(allData[allData.length - 1].Date);
+            const firstDate = formatDateLabel(globalData.history[0].Date);
+            const lastDate = formatDateLabel(globalData.history[globalData.history.length - 1].Date);
             const rangeInfo = document.getElementById('training-range-info');
             if (rangeInfo) {
-                rangeInfo.innerHTML = `<strong>${firstDate}</strong> até <strong>${lastDate}</strong> (${allData.length} pregões)`;
+                rangeInfo.innerHTML = `<strong>${firstDate}</strong> até <strong>${lastDate}</strong> (${globalData.history.length} pregões)`;
             }
         }
 
         updateCurrentPriceAndRSI();
 
-        if (textPrev) {
-            const resultsPrev = Papa.parse(textPrev, { header: true, dynamicTyping: true });
-            globalData.predictions = resultsPrev.data.filter(row => row.Data && row.Preco_Previsto);
+        if (prevData && prevData.length > 0) {
+            globalData.predictions = prevData.filter(row => row.Data && row.Preco_Previsto);
         } else {
             globalData.predictions = [];
         }
@@ -1243,7 +1296,7 @@ function drawPriceChart() {
     }
     
     const xgbHistorical = xgbLine;
-    const xgbFutureOnly = new Array(histData.length).fill(null).concat(xgbFuture);
+    let xgbFutureOnly = new Array(histData.length).fill(null).concat(xgbFuture);
 
     // Lógica da Previsão Ajustada pelo Sentimento (Híbrida)
     let xgbFutureAdjustedOnly = [];
@@ -1251,7 +1304,9 @@ function drawPriceChart() {
         const sentimentScore = window.currentSentimentScore || 0;
         // Amplificador visual: Garante que a linha ciano "fuja" da sombra da vermelha mesmo com sentimento fraco
         let visualSentiment = sentimentScore;
-        if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+        if (Math.abs(sentimentScore) <= 0.01) {
+             visualSentiment = 0.05; // Leve desvio para não sobrepor completamente a linha vermelha quando neutro
+        } else if (Math.abs(sentimentScore) < 0.3) {
              visualSentiment = sentimentScore > 0 ? 0.3 : -0.3; // Espaçamento mínimo
         }
         const ajusteDiario = visualSentiment * 0.015; 
@@ -1262,7 +1317,18 @@ function drawPriceChart() {
             return preco * fatorAjuste;
         });
         
-        xgbFutureAdjustedOnly = new Array(histData.length).fill(null).concat(xgbFutureAdjusted);
+        // Conectar a linha futura ao último preço real
+        const lastClose = histData.length > 0 ? histData[histData.length - 1].Close : null;
+        xgbFutureOnly = new Array(histData.length).fill(null);
+        xgbFutureAdjustedOnly = new Array(histData.length).fill(null);
+        
+        if (lastClose !== null) {
+            xgbFutureOnly[histData.length - 1] = lastClose;
+            xgbFutureAdjustedOnly[histData.length - 1] = lastClose;
+        }
+        
+        xgbFutureOnly = xgbFutureOnly.concat(xgbFuture);
+        xgbFutureAdjustedOnly = xgbFutureAdjustedOnly.concat(xgbFutureAdjusted);
         
         // Chamar atualização do painel de confluência
         setTimeout(() => updateConfluencePanel(), 100);
@@ -1451,16 +1517,8 @@ function drawPriceChart() {
                         title: (items) => items.length ? formatDateLabel(items[0].label) : '',
                         label: (context) => {
                             const value = context.parsed.y;
-                            return value !== null ? `${context.dataset.label}: R$ ${value.toFixed(2)}` : context.dataset.label;
-                        },
-                        footer: (items) => {
-                            if (!items || items.length === 0) return '';
-                            const label = formatDateLabel(items[0].label);
-                            const actual = actualPriceByLabel.get(label);
-                            if (actual !== undefined && actual !== null) {
-                                return `Preço Real: R$ ${actual.toFixed(2)}`;
-                            }
-                            return '';
+                            if (value === null || isNaN(value)) return null;
+                            return `${context.dataset.label}: R$ ${value.toFixed(2)}`;
                         }
                     }
                 }
@@ -1480,6 +1538,9 @@ function drawPriceChart() {
             }
         }
     });
+    // Sync custom slider
+    syncSlider('price-slider', priceChartInstance, histData);
+
     window.priceChartInstance = priceChartInstance;
     setupPriceChartWheelZoom();
 }
@@ -1552,6 +1613,7 @@ function setupPriceChartWheelZoom() {
         chart.options.scales.x.min = newMin;
         chart.options.scales.x.max = newMax;
         chart.update('none');
+        updateSliderFromChart('price-slider', chart);
     };
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });
@@ -1561,6 +1623,7 @@ function setupPriceChartWheelZoom() {
         chart.options.scales.x.min = undefined;
         chart.options.scales.x.max = undefined;
         chart.update('none');
+        updateSliderFromChart('price-slider', chart);
     });
     canvas.__chartWheelZoomAttached = true;
 }
@@ -1593,7 +1656,7 @@ function drawTechCharts() {
             labels: labels,
             datasets: [
                 {
-                    label: 'Preço Real',
+                label: 'Preço Real',
                     data: closePrices,
                     borderColor: '#1d4ed8',
                     backgroundColor: 'rgba(29, 78, 216, 0.16)',
@@ -1614,8 +1677,14 @@ function drawTechCharts() {
             },
             plugins: {
                 zoom: {
-                    pan: { enabled: true, mode: 'x' },
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                    zoom: { 
+                        wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                        onZoom: ({chart}) => updateSliderFromChart('real-price-slider', chart)
+                    },
+                    pan: { 
+                        enabled: true, mode: 'x',
+                        onPan: ({chart}) => updateSliderFromChart('real-price-slider', chart)
+                    }
                 },
                 legend: {
                     position: 'top',
@@ -1685,8 +1754,14 @@ function drawTechCharts() {
             },
             plugins: {
                 zoom: {
-                    pan: { enabled: true, mode: 'x' },
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                    zoom: { 
+                        wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                        onZoom: ({chart}) => updateSliderFromChart('ma20-slider', chart)
+                    },
+                    pan: { 
+                        enabled: true, mode: 'x',
+                        onPan: ({chart}) => updateSliderFromChart('ma20-slider', chart)
+                    }
                 },
                 legend: {
                     position: 'top',
@@ -1708,7 +1783,8 @@ function drawTechCharts() {
                         title: (items) => items.length ? formatDateLabel(items[0].label) : '',
                         label: (context) => {
                             const value = context.parsed.y;
-                            return value !== null ? `${context.dataset.label}: R$ ${value.toFixed(2)}` : null;
+                            if (value === null || isNaN(value)) return null;
+                            return `${context.dataset.label}: R$ ${value.toFixed(2)}`;
                         }
                     }
                 }
@@ -1731,14 +1807,15 @@ function drawTechCharts() {
     const xgbCtx = document.getElementById('xgbForecastChart').getContext('2d');
     if (xgbForecastChartInstance) xgbForecastChartInstance.destroy();
     const xgbHistoricalTech = xgbLine;
-    const xgbFutureTech = new Array(histData.length).fill(null).concat(xgbFuture);
-
-    // Linha Ciano: Previsão Ajustada por Sentimento (mesma lógica do gráfico principal)
-    let xgbFutureTechAdjusted = [];
+    let xgbFutureTech = new Array(histData.length).fill(null);
+    let xgbFutureTechAdjusted = new Array(histData.length).fill(null);
+    
     if (predData.length > 0) {
         const sentimentScore = window.currentSentimentScore || 0;
         let visualSentiment = sentimentScore;
-        if (Math.abs(sentimentScore) > 0.01 && Math.abs(sentimentScore) < 0.3) {
+        if (Math.abs(sentimentScore) <= 0.01) {
+            visualSentiment = 0.05; // Leve desvio para não sobrepor completamente a linha vermelha quando neutro
+        } else if (Math.abs(sentimentScore) < 0.3) {
             visualSentiment = sentimentScore > 0 ? 0.3 : -0.3;
         }
         const ajusteDiario = visualSentiment * 0.015;
@@ -1747,7 +1824,17 @@ function drawTechCharts() {
             const fatorAjuste = 1 + (ajusteDiario * diasFuturos);
             return preco * fatorAjuste;
         });
-        xgbFutureTechAdjusted = new Array(histData.length).fill(null).concat(adjusted);
+        
+        const lastClose = histData.length > 0 ? histData[histData.length - 1].Close : null;
+        if (lastClose !== null) {
+            xgbFutureTech[histData.length - 1] = lastClose;
+            xgbFutureTechAdjusted[histData.length - 1] = lastClose;
+        }
+        
+        xgbFutureTech = xgbFutureTech.concat(xgbFuture);
+        xgbFutureTechAdjusted = xgbFutureTechAdjusted.concat(adjusted);
+    } else {
+        xgbFutureTech = xgbFutureTech.concat(xgbFuture);
     }
 
     const futureAreaPluginTech = {
@@ -1828,8 +1915,14 @@ function drawTechCharts() {
             },
             plugins: {
                 zoom: {
-                    pan: { enabled: true, mode: 'x' },
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                    zoom: { 
+                        wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                        onZoom: ({chart}) => updateSliderFromChart('xgb-forecast-slider', chart)
+                    },
+                    pan: { 
+                        enabled: true, mode: 'x',
+                        onPan: ({chart}) => updateSliderFromChart('xgb-forecast-slider', chart)
+                    }
                 },
                 legend: {
                     position: 'top',
@@ -1851,7 +1944,8 @@ function drawTechCharts() {
                         title: (items) => items.length ? formatDateLabel(items[0].label) : '',
                         label: (context) => {
                             const value = context.parsed.y;
-                            return value !== null ? `${context.dataset.label}: R$ ${value.toFixed(2)}` : null;
+                            if (value === null || isNaN(value)) return null;
+                            return `${context.dataset.label}: R$ ${value.toFixed(2)}`;
                         }
                     }
                 }
@@ -1915,8 +2009,14 @@ function drawTechCharts() {
             },
             plugins: {
                 zoom: {
-                    pan: { enabled: true, mode: 'x' },
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                    zoom: { 
+                        wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                        onZoom: ({chart}) => updateSliderFromChart('prediction-points-slider', chart)
+                    },
+                    pan: { 
+                        enabled: true, mode: 'x',
+                        onPan: ({chart}) => updateSliderFromChart('prediction-points-slider', chart)
+                    }
                 },
                 legend: {
                     position: 'top',
@@ -1985,6 +2085,16 @@ function drawTechCharts() {
             instance.options.scales.x.min = newMin;
             instance.options.scales.x.max = newMax;
             instance.update('none');
+            
+            const sliderIds = {
+                'realPriceChart': 'real-price-slider',
+                'ma20Chart': 'ma20-slider',
+                'xgbForecastChart': 'xgb-forecast-slider',
+                'predictionPointsChart': 'prediction-points-slider'
+            };
+            if (sliderIds[canvasId]) {
+                updateSliderFromChart(sliderIds[canvasId], instance);
+            }
         }, { passive: false });
         canvas.addEventListener('dblclick', () => {
             const instance = Chart.getChart(canvas);
@@ -1992,9 +2102,25 @@ function drawTechCharts() {
             instance.options.scales.x.min = undefined;
             instance.options.scales.x.max = undefined;
             instance.update('none');
+            
+            const sliderIds = {
+                'realPriceChart': 'real-price-slider',
+                'ma20Chart': 'ma20-slider',
+                'xgbForecastChart': 'xgb-forecast-slider',
+                'predictionPointsChart': 'prediction-points-slider'
+            };
+            if (sliderIds[canvasId]) {
+                updateSliderFromChart(sliderIds[canvasId], instance);
+            }
         });
         canvas.__techWheelZoom = true;
     });
+
+    // Initialize all sliders
+    syncSlider('real-price-slider', realPriceChartInstance, histData);
+    syncSlider('ma20-slider', ma20ChartInstance, histData);
+    syncSlider('xgb-forecast-slider', xgbForecastChartInstance, histData);
+    syncSlider('prediction-points-slider', predictionPointsChartInstance, histData);
 }
 
 function drawRsiChart() {
@@ -2038,7 +2164,7 @@ function drawRsiChart() {
                     borderColor: '#818cf8',
                     backgroundColor: 'rgba(129, 140, 248, 0.16)',
                     borderWidth: 2,
-                    tension: 0.3,
+                    tension: 0,
                     fill: true,
                     pointRadius: 0,
                     pointHoverRadius: 6
@@ -2051,6 +2177,16 @@ function drawRsiChart() {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
+                zoom: {
+                    zoom: { 
+                        wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x',
+                        onZoom: ({chart}) => updateSliderFromChart('rsi-slider', chart)
+                    },
+                    pan: { 
+                        enabled: true, mode: 'x',
+                        onPan: ({chart}) => updateSliderFromChart('rsi-slider', chart)
+                    }
+                },
                 legend: { display: false },
                 tooltip: {
                     backgroundColor: 'rgba(15, 23, 42, 0.95)',
@@ -2093,6 +2229,9 @@ function drawRsiChart() {
             }
         }
     });
+    // Sync custom slider
+    syncSlider('rsi-slider', rsiChartInstance, histData);
+
     window.rsiChartInstance = rsiChartInstance;
 
     const canvas = document.getElementById('rsiChart');
@@ -2118,6 +2257,7 @@ function drawRsiChart() {
             chart.options.scales.x.min = newMin;
             chart.options.scales.x.max = newMax;
             chart.update('none');
+            updateSliderFromChart('rsi-slider', chart);
         }, { passive: false });
         canvas.addEventListener('dblclick', () => {
             const chart = Chart.getChart(canvas);
@@ -2125,6 +2265,7 @@ function drawRsiChart() {
             chart.options.scales.x.min = undefined;
             chart.options.scales.x.max = undefined;
             chart.update('none');
+            updateSliderFromChart('rsi-slider', chart);
         });
         canvas.__rsiWheelZoomAttached = true;
     }
@@ -2376,13 +2517,21 @@ function setupAnalystDiary() {
     
     if (!btnSave || !textarea || !timeline) return;
 
-    const savedDraft = localStorage.getItem('itub4_analyst_diary');
-    if (savedDraft) {
-        textarea.value = savedDraft;
-    }
+    const getDraftKey = () => `analyst_diary_${getSelectedTickerClean()}`;
+    const getEntriesKey = () => `diary_entries_${getSelectedTickerClean()}`;
+
+    const loadDraft = () => {
+        const savedDraft = localStorage.getItem(getDraftKey());
+        if (savedDraft) {
+            textarea.value = savedDraft;
+        } else {
+            textarea.value = '';
+        }
+    };
+    loadDraft();
 
     textarea.addEventListener('input', () => {
-        localStorage.setItem('itub4_analyst_diary', textarea.value);
+        localStorage.setItem(getDraftKey(), textarea.value);
     });
 
     let currentSentiment = 'neutro';
@@ -2397,11 +2546,11 @@ function setupAnalystDiary() {
     });
 
     const renderTimeline = () => {
-        const entries = JSON.parse(localStorage.getItem('itub4_diary_entries') || '[]');
+        const entries = JSON.parse(localStorage.getItem(getEntriesKey()) || '[]');
         timeline.innerHTML = '';
         
         if (entries.length === 0) {
-            timeline.innerHTML = '<div class="diary-empty">Nenhum lançamento no diário ainda.</div>';
+            timeline.innerHTML = '<div class="diary-empty">Nenhum lançamento no diário ainda para este ativo.</div>';
             return;
         }
 
@@ -2412,22 +2561,29 @@ function setupAnalystDiary() {
             
             let badgeStyle = '';
             let badgeIcon = '';
-            if (entry.sentiment === 'alta') { badgeStyle = 'color: #10b981; border-color: #10b981;'; badgeIcon = 'fa-arrow-trend-up'; }
-            else if (entry.sentiment === 'baixa') { badgeStyle = 'color: #ef4444; border-color: #ef4444;'; badgeIcon = 'fa-arrow-trend-down'; }
-            else { badgeStyle = 'color: #9ca3af; border-color: #9ca3af;'; badgeIcon = 'fa-minus'; }
+            if (entry.sentiment === 'alta') {
+                badgeStyle = 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);';
+                badgeIcon = 'fa-arrow-trend-up';
+            } else if (entry.sentiment === 'baixa') {
+                badgeStyle = 'background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);';
+                badgeIcon = 'fa-arrow-trend-down';
+            } else {
+                badgeStyle = 'background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3);';
+                badgeIcon = 'fa-minus';
+            }
 
             card.innerHTML = `
-                <div class="diary-card-header">
+                <div class="diary-content-wrap">
+                    <div class="diary-text">${entry.content.replace(/\n/g, '<br>')}</div>
                     <div class="diary-meta">
                         <span class="diary-date"><i class="fa-regular fa-clock"></i> ${entry.dateFormatted}</span>
                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
                             <span class="diary-price-badge" style="${badgeStyle}"><i class="fa-solid ${badgeIcon}"></i> Viés: ${entry.sentiment.toUpperCase()}</span>
-                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ITUB4: R$ ${entry.price}</span>` : ''}
+                            ${entry.price ? `<span class="diary-price-badge"><i class="fa-solid fa-tag"></i> ${getSelectedTickerClean()}: R$ ${entry.price}</span>` : ''}
                         </div>
                     </div>
                     <button class="btn-delete-diary" data-id="${entry.id}" title="Excluir anotação"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
-                <div class="diary-content">${entry.content}</div>
             `;
             timeline.appendChild(card);
         });
@@ -2437,9 +2593,9 @@ function setupAnalystDiary() {
             btn.addEventListener('click', (e) => {
                 const id = btn.getAttribute('data-id');
                 if (confirm('Tem certeza que deseja excluir esta anotação?')) {
-                    let updated = JSON.parse(localStorage.getItem('itub4_diary_entries') || '[]');
+                    let updated = JSON.parse(localStorage.getItem(getEntriesKey()) || '[]');
                     updated = updated.filter(item => item.id !== id);
-                    localStorage.setItem('itub4_diary_entries', JSON.stringify(updated));
+                    localStorage.setItem(getEntriesKey(), JSON.stringify(updated));
                     renderTimeline();
                 }
             });
@@ -2472,9 +2628,9 @@ function setupAnalystDiary() {
             price: currentPrice
         };
 
-        const entries = JSON.parse(localStorage.getItem('itub4_diary_entries') || '[]');
+        const entries = JSON.parse(localStorage.getItem(getEntriesKey()) || '[]');
         entries.push(newEntry);
-        localStorage.setItem('itub4_diary_entries', JSON.stringify(entries));
+        localStorage.setItem(getEntriesKey(), JSON.stringify(entries));
 
         // Reset form
         textarea.value = '';
@@ -2779,4 +2935,55 @@ window.abrirModalConfluencia = function() {
 
     document.getElementById('modal-body').innerHTML = content;
     document.getElementById('kpi-modal').classList.add('active');
+}
+
+// --- SLIDER SYNC LOGIC ---
+function syncSlider(elementId, chartInstance, histData) {
+    const el = document.getElementById(elementId);
+    if (!el || typeof noUiSlider === 'undefined') return;
+
+    if (el.noUiSlider) {
+        el.noUiSlider.destroy();
+    }
+
+    if (!histData || histData.length < 2) return;
+
+    const maxIdx = histData.length - 1;
+    let startIdx = 0;
+    let endIdx = maxIdx;
+
+    noUiSlider.create(el, {
+        start: [startIdx, endIdx],
+        connect: true,
+        step: 1,
+        range: {
+            'min': 0,
+            'max': maxIdx
+        }
+    });
+
+    el.noUiSlider.on('slide', (values) => {
+        const s = Math.round(values[0]);
+        const e = Math.round(values[1]);
+        
+        chartInstance.options.scales.x.min = s;
+        chartInstance.options.scales.x.max = e;
+        chartInstance.update('none');
+    });
+}
+
+function updateSliderFromChart(elementId, chartInstance) {
+    const el = document.getElementById(elementId);
+    if (!el || !el.noUiSlider) return;
+    
+    const xScale = chartInstance.scales.x;
+    if (!xScale) return;
+
+    let s = Math.max(0, Math.floor(xScale.min));
+    let e = Math.min(xScale.ticks.length - 1, Math.ceil(xScale.max));
+    
+    if (isNaN(s)) s = 0;
+    if (isNaN(e) || e < s) e = xScale.ticks.length - 1;
+
+    el.noUiSlider.set([s, e]);
 }

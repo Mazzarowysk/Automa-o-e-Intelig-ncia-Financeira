@@ -353,6 +353,72 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             threading.Thread(target=lambda: (time.sleep(1), os._exit(0)), daemon=True).start()
             return
 
+        # ===== /api/history =====
+        if self.path.startswith('/api/history'):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            ticker = query.get('ticker', ['ITUB4'])[0]
+            import core.banco_dados as bd
+            data = bd.carregar_historico_json(ticker)
+            body = json.dumps(data).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # ===== /api/predictions =====
+        if self.path.startswith('/api/predictions'):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            ticker = query.get('ticker', ['ITUB4'])[0]
+            import core.banco_dados as bd
+            data = bd.carregar_previsoes_json(ticker)
+            body = json.dumps(data).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # ===== /api/metrics =====
+        if self.path.startswith('/api/metrics'):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            ticker = query.get('ticker', ['ITUB4'])[0]
+            import core.banco_dados as bd
+            data = bd.carregar_metricas_json(ticker)
+            if data is None: data = {}
+            body = json.dumps(data).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # ===== /api/sentiment =====
+        if self.path.startswith('/api/sentiment'):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            ticker = query.get('ticker', ['ITUB4'])[0]
+            import core.banco_dados as bd
+            data = bd.carregar_sentimento_json(ticker)
+            if data is None: data = {}
+            body = json.dumps(data).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         return super().do_GET()
 
     def do_POST(self):
@@ -385,7 +451,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = 'utf-8'
-                cmd = f'python analise_completa.py --start "{start_date}" --end "{end_date}" --ticker "{ticker}" --no-dashboard'
+                cmd = f'python -c "from orquestrador import processar_ticker; processar_ticker(\'{ticker}\')"'
                 process = subprocess.run(cmd, shell=True, env=env)
 
                 if process.returncode == 0:

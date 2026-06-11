@@ -451,7 +451,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = 'utf-8'
-                cmd = f'python -c "from orquestrador import processar_ticker; processar_ticker(\'{ticker}\')"'
+                cmd = f'python -c "from orquestrador import processar_ticker; processar_ticker(\'{ticker}\', start_date=\'{start_date}\', end_date=\'{end_date}\')"'
                 process = subprocess.run(cmd, shell=True, env=env)
 
                 if process.returncode == 0:

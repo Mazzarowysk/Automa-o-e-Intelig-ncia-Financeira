@@ -1,5 +1,6 @@
 import time
 import concurrent.futures
+import pandas as pd
 from core.coletor import coletar_dados_yfinance, enriquecer_com_macro
 from core.features import criar_features_otimizadas, selecionar_features
 from core.modelo import ModeloXGBoost
@@ -12,8 +13,10 @@ TICKERS_PADRAO = [
     "BBAS3", "WEGE3", "MGLU3", "B3SA3", "RENT3", "SUZB3"
 ]
 
-def processar_ticker(ticker):
+def processar_ticker(ticker, start_date=None, end_date=None):
     print(f"\n{'='*50}\n🚀 INICIANDO PROCESSAMENTO: {ticker}\n{'='*50}")
+    if start_date or end_date:
+        print(f"📅 Filtro de Treinamento - De: {start_date or 'Início'} Até: {end_date or 'Hoje'}")
     inicio = time.time()
     
     try:
@@ -24,6 +27,15 @@ def processar_ticker(ticker):
         # 2. Features
         df_features = criar_features_otimizadas(df_macro, padronizar=True)
         
+        # Filtro de datas para treinamento (após cálculo das features para não quebrar médias móveis)
+        if start_date:
+            df_features = df_features[df_features['Date'] >= pd.to_datetime(start_date)]
+        if end_date:
+            df_features = df_features[df_features['Date'] <= pd.to_datetime(end_date) + pd.Timedelta(days=1)]
+            
+        if len(df_features) < 30:
+            print(f"⚠️ Aviso: Poucos dados após o filtro de datas ({len(df_features)} linhas). Treinamento pode ser impreciso.")
+
         # 3. Seleção
         melhores_features = selecionar_features(df_features, target_col='target', n_features=30)
         

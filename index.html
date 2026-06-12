@@ -41,6 +41,7 @@
                 <a href="#" data-target="kpi" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Indicadores</a>
                 <a href="#" data-target="tech" class="nav-item"><i class="fa-solid fa-chart-area"></i> Análise Técnica</a>
                 <a href="#" data-target="ai" class="nav-item"><i class="fa-solid fa-crystal-ball"></i> Previsão IA</a>
+                <a href="#" data-target="reports" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Relatórios</a>
             </nav>
             
             <div class="sidebar-footer">
@@ -445,7 +446,48 @@
                         </div>
                     </div>
                 </div>
+
             </section>
+            
+            <!-- Reports Section -->
+            <section id="reports-section" class="reports-panel" style="display: none; padding: 20px;">
+                <div class="chart-header" style="margin-bottom: 20px;">
+                    <h2><i class="fa-solid fa-file-pdf"></i> Central de Relatórios</h2>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Exporte os dados da Inteligência Financeira para análises offline.</p>
+                </div>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    
+                    <!-- Left: Download de Relatórios -->
+                    <div class="glass-panel" style="flex: 2; min-width: 300px; padding: 20px; background: rgba(15, 23, 42, 0.4);">
+                        <h3><i class="fa-solid fa-folder-open"></i> Arquivos Disponíveis</h3>
+                        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">Acesse os boletins diários processados em lote ou dossiês previamente gerados.</p>
+                        
+                        <div id="reports-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                            <div style="color: #64748b; font-size: 0.9rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando arquivos...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Gerar Dossiê -->
+                    <div class="glass-panel" style="flex: 1; min-width: 300px; padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: rgba(15, 23, 42, 0.4);">
+                        <i class="fa-solid fa-file-invoice-dollar" style="font-size: 3rem; color: var(--accent-blue); margin-bottom: 15px;"></i>
+                        <h3 style="margin-bottom: 10px;">Dossiê do Ativo</h3>
+                        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px;">
+                            Gera um documento PDF em tempo real contendo todas as métricas, previsões futuras e 30 dias de histórico para <strong id="reports-ticker-label" style="color: #f8fafc; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">ITUB4</strong>.
+                        </p>
+                        <div style="display: flex; gap: 10px; width: 100%;">
+                            <button id="btn-generate-dossier" style="flex: 1; background: var(--accent-blue); color: white; border: none; border-radius: 8px; padding: 14px 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);">
+                                <i class="fa-solid fa-file-pdf"></i> Dossiê PDF
+                            </button>
+                            <button id="btn-generate-csv" style="flex: 1; background: #10b981; color: white; border: none; border-radius: 8px; padding: 14px 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                                <i class="fa-solid fa-file-csv"></i> Dossiê CSV
+                            </button>
+                        </div>
+                        <div id="dossier-status" style="margin-top: 15px; font-size: 0.85rem; display: none;"></div>
+                    </div>
+                    
+                </div>
+            </section>
+
         </main>
 
         <!-- Right Info Panel (Collapsible) -->
@@ -530,6 +572,27 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== SEÇÃO RELATÓRIOS ===== -->
+    <section id="reports-section" style="display:none; padding: 1.5rem; animation: fadeIn 0.3s ease;">
+        <div class="glass-panel" style="padding: 2rem; margin-bottom: 1.5rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1.5rem; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem; color: var(--text-primary);"><i class="fa-solid fa-file-pdf" style="color: var(--accent-blue); margin-right:0.5rem;"></i> Central de Relatórios</h3>
+                    <p style="margin: 0.3rem 0 0; color: var(--text-secondary); font-size:0.9rem;">Boletins diários e dossiês gerados automaticamente pelo sistema</p>
+                </div>
+                <button id="btn-refresh-reports" class="btn-refresh" style="padding:0.5rem 1rem; font-size:0.85rem;">
+                    <i class="fa-solid fa-rotate-right"></i> Atualizar lista
+                </button>
+            </div>
+            <div id="reports-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+                <div style="text-align:center; color:var(--text-secondary); padding:2rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; margin-bottom:0.5rem;"></i>
+                    <p>Carregando relatórios...</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay">

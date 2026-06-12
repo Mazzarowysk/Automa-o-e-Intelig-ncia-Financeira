@@ -245,10 +245,8 @@ function setupSentimentFilters() {
     if (sentimentStartEl) sentimentStartEl.value = weekAgoStr;
     if (sentimentEndEl)   sentimentEndEl.value   = todayStr;
 
-    // Carregar dados iniciais (período padrão = 1 semana)
-    const startInit = weekAgoStr;
-    const endInit   = todayStr;
-    fetchSentimentByPeriod(startInit, endInit);
+    // A busca automática via API foi removida aqui para não travar o carregamento inicial.
+    // O sistema usará os dados em cache carregados pelo loadSentimentData().
 
     periodBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -758,20 +756,84 @@ function setupEventListeners() {
     if (btnShutdown) {
         btnShutdown.addEventListener('click', async () => {
             if(confirm("Tem certeza que deseja desligar o servidor do Dashboard? A página parará de funcionar.")) {
-                try {
-                    await fetch('/shutdown');
-                } catch(e) {
-                    // Ignora o erro pois o fetch falhará quando o servidor morrer
-                }
-                btnShutdown.innerHTML = '<i class="fa-solid fa-check"></i> Desligado';
+                btnShutdown.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Desligando...';
                 btnShutdown.style.background = 'var(--danger)';
                 btnShutdown.style.color = 'white';
                 btnShutdown.disabled = true;
                 document.body.style.opacity = '0.5';
                 document.body.style.pointerEvents = 'none';
-                alert("Servidor finalizado com sucesso! Você já pode fechar esta aba e a janela preta do CMD de forma limpa.");
+                
+                try {
+                    // Sem await para não travar
+                    fetch('/shutdown');
+                } catch(e) {}
+                
+                setTimeout(() => {
+                    alert("Servidor finalizado com sucesso! A janela do CMD fechará automaticamente. Esta aba será fechada se o navegador permitir.");
+                    window.close();
+                }, 500);
             }
         });
+    }
+
+    // ===== Função para carregar lista de relatórios =====
+    async function loadReports() {
+        const container = document.getElementById('reports-list');
+        if (!container) return;
+
+        container.innerHTML = `<div style="text-align:center; color:var(--text-secondary); padding:2rem;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;"></i>
+            <p style="margin-top:0.5rem;">Carregando relatórios...</p>
+        </div>`;
+
+        try {
+            const res = await fetch('/api/list_reports');
+            const files = await res.json();
+
+            if (!files || files.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:var(--text-secondary); padding:3rem;">
+                    <i class="fa-solid fa-folder-open" style="font-size:2rem; margin-bottom:1rem; opacity:0.4;"></i>
+                    <p>Nenhum relatório encontrado. Clique em <strong>Recalcular e Treinar Modelo</strong> para gerar o primeiro boletim.</p>
+                </div>`;
+                return;
+            }
+
+            const icons = { pdf: 'fa-file-pdf', csv: 'fa-file-csv' };
+            const typeColors = { pdf: '#ef4444', csv: '#10b981' };
+            const badges = { Boletim: 'Boletim Diário', Dossie: 'Dossiê Completo' };
+
+            container.innerHTML = files.map(f => {
+                const ext = f.name.split('.').pop().toLowerCase();
+                const icon = icons[ext] || 'fa-file';
+                const color = typeColors[ext] || '#64748b';
+                const badge = badges[f.type] || f.type;
+                const dateStr = new Date(f.time * 1000).toLocaleString('pt-BR');
+                return `
+                <div style="display:flex; align-items:center; justify-content:space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.25rem; transition: background 0.2s;" 
+                     onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <i class="fa-solid ${icon}" style="font-size:1.8rem; color:${color};"></i>
+                        <div>
+                            <div style="font-weight:600; color:var(--text-primary); font-size:0.95rem;">${f.name}</div>
+                            <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:2px;">
+                                <span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:2px 8px; border-radius:20px; font-size:0.72rem; margin-right:8px;">${badge}</span>
+                                Gerado em: ${dateStr}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="${f.url}" target="_blank" download="${f.name}" 
+                       style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; border-radius:8px; background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:0.85rem; text-decoration:none; font-weight:600; transition:all 0.2s; white-space:nowrap;"
+                       onmouseover="this.style.background='rgba(59,130,246,0.3)'" onmouseout="this.style.background='rgba(59,130,246,0.15)'">
+                        <i class="fa-solid fa-download"></i> Baixar
+                    </a>
+                </div>`;
+            }).join('');
+        } catch (err) {
+            container.innerHTML = `<div style="text-align:center; color:#ef4444; padding:2rem;">
+                <i class="fa-solid fa-circle-exclamation" style="font-size:1.5rem; margin-bottom:0.5rem;"></i>
+                <p>Erro ao carregar relatórios: ${err.message}</p>
+            </div>`;
+        }
     }
 
     // Navegação na Sidebar (Abas)
@@ -816,10 +878,34 @@ function setupEventListeners() {
                 chartRsi.style.display = 'none';
                 if (analystTools) analystTools.style.display = 'none';
                 if (trainingSection) trainingSection.style.display = 'none';
+            } else if (targetId === 'reports') {
+                kpiSection.style.display = 'none';
+                chartPrice.style.display = 'none';
+                chartRsi.style.display = 'none';
+                if (analystTools) analystTools.style.display = 'none';
+                if (trainingSection) trainingSection.style.display = 'none';
             }
+
+            // Mostrar/ocultar seção de relatórios
+            const reportsSection = document.getElementById('reports-section');
+            if (reportsSection) {
+                if (targetId === 'reports') {
+                    reportsSection.style.display = 'block';
+                    loadReports();
+                } else {
+                    reportsSection.style.display = 'none';
+                }
+            }
+
             refreshChartsOnTab(targetId);
         });
     });
+
+    // Botão de atualizar lista de relatórios
+    const btnRefreshReports = document.getElementById('btn-refresh-reports');
+    if (btnRefreshReports) {
+        btnRefreshReports.addEventListener('click', () => loadReports());
+    }
 
     // Lógica do Modal de KPIs
     const kpiCards = document.querySelectorAll('.kpi-card[data-kpi]');
@@ -1058,7 +1144,7 @@ function buildModalData() {
             </div>` },
         r2: { title: "Poder de Explicação (R²)", icon: "fa-bullseye", valId: "val-r2", desc: r2Desc },
         rsi: { title: "Índice de Força Relativa (RSI)", icon: "fa-arrow-right-arrow-left", valId: "val-rsi", desc: rsiDesc },
-        price: { title: "Último Fechamento", icon: "fa-dollar-sign", valId: "val-price", desc: priceDesc }
+        price: { title: "Previsão de Fechamento", icon: "fa-dollar-sign", valId: "val-price", desc: priceDesc }
     };
 }
 
@@ -1183,7 +1269,22 @@ function updateCurrentPriceAndRSI() {
     const prevRow = globalData.history[globalData.history.length - 2];
     
     // Preço
-    if (lastRow.Close) {
+    const hasPrediction = globalData.predictions && globalData.predictions.length > 0;
+    if (hasPrediction && lastRow.Close) {
+        const firstPred = globalData.predictions[0];
+        const predPrice = firstPred.Preco_Previsto;
+        const predDate = firstPred.Data || firstPred.Date;
+        
+        document.getElementById('val-price').innerText = `R$ ${predPrice.toFixed(2)}`;
+        
+        const varPct = ((predPrice / lastRow.Close) - 1) * 100;
+        const descPrice = document.getElementById('desc-price');
+        const lastDateStr = lastRow.Date ? formatDateLabel(lastRow.Date) : 'Ontem';
+        const predDateStr = predDate ? formatDateLabel(predDate) : 'Amanhã';
+        
+        descPrice.innerHTML = `${varPct > 0 ? '+' : ''}${varPct.toFixed(2)}% vs ${lastDateStr} <span style="font-size: 0.85em; opacity: 0.85;">(R$ ${lastRow.Close.toFixed(2)})</span> <span style="opacity: 0.75; font-size: 0.75rem; display: block; margin-top: 4px;">Fechamento de: ${predDateStr}</span>`;
+        descPrice.className = `kpi-desc ${varPct >= 0 ? 'text-success' : 'text-danger'}`;
+    } else if (lastRow.Close) {
         document.getElementById('val-price').innerText = `R$ ${lastRow.Close.toFixed(2)}`;
         
         if (prevRow && prevRow.Close) {
@@ -2406,19 +2507,62 @@ function setupTrainingPanel() {
 
             const result = await response.json();
 
-            if (result.status === 'success') {
-                if (statusDiv) {
-                    statusDiv.className = 'training-status success';
-                    statusDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Treinamento concluído com sucesso!';
-                }
-                
+            if (result.status === 'started' || result.status === 'success') {
+                // Polling para aguardar o término do treinamento em background
+                const progressMessages = [
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Coletando dados do Yahoo Finance...',
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Calculando indicadores técnicos...',
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Selecionando melhores features...',
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Treinando modelo XGBoost...',
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Gerando previsões futuras...',
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Salvando resultados no banco...',
+                ];
+                let msgIdx = 0;
+
+                // Espera 1.5s antes do primeiro poll — garante que o servidor marcou running=True
+                await new Promise(r => setTimeout(r, 1500));
+
+                await new Promise((resolve) => {
+                    const pollInterval = setInterval(async () => {
+                        // Atualiza mensagem de progresso ciclicamente
+                        if (statusDiv) {
+                            statusDiv.className = 'training-status loading';
+                            statusDiv.innerHTML = progressMessages[msgIdx % progressMessages.length];
+                            msgIdx++;
+                        }
+
+                        try {
+                            const statusRes = await fetch('/api/training_status');
+                            const statusData = await statusRes.json();
+
+                            if (!statusData.running) {
+                                clearInterval(pollInterval);
+                                if (statusData.error) {
+                                    if (statusDiv) {
+                                        statusDiv.className = 'training-status error';
+                                        statusDiv.innerHTML = `<i class="fa-solid fa-exclamation-circle"></i> Erro: ${statusData.error}`;
+                                    }
+                                } else {
+                                    if (statusDiv) {
+                                        statusDiv.className = 'training-status success';
+                                        statusDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> Treinamento concluído com sucesso!';
+                                    }
+                                }
+                                resolve();
+                            }
+                        } catch (e) {
+                            // Se o servidor não responder, continua tentando
+                        }
+                    }, 2000);
+                });
+
                 // Recarregar os dados para atualizar os gráficos
                 await Promise.all([
                     loadMetrics(),
                     loadChartData()
                 ]);
                 updateTimestamp();
-                
+
                 setTimeout(() => {
                     if (statusDiv) {
                         statusDiv.className = 'training-status';

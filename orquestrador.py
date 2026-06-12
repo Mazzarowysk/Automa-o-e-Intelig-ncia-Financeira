@@ -7,6 +7,7 @@ from core.modelo import ModeloXGBoost
 from core.sentimento import analisar_sentimento_noticias
 from core.notificador import verificar_alertas
 import core.banco_dados as bd
+from core.relatorios import gerar_relatorios_finais
 
 TICKERS_PADRAO = [
     "ITUB4", "PETR4", "VALE3", "BBDC4", "ABEV3", 
@@ -73,10 +74,11 @@ def processar_ticker(ticker, start_date=None, end_date=None):
         traceback.print_exc()
         return False
 
-def processar_lote_paralelo(tickers=TICKERS_PADRAO, max_workers=4):
+def processar_lote_paralelo(tickers=TICKERS_PADRAO, max_workers=4, start_date=None, end_date=None):
+    from functools import partial
     print(f"\n{'='*60}")
-    print(f"🔄 INICIANDO PROCESSAMENTO EM LOTE PARA {len(tickers)} ATIVOS")
-    print(f"⚙️ Workers em Paralelo: {max_workers}")
+    print(f"🚀 INICIANDO PROCESSAMENTO EM LOTE PARA {len(tickers)} ATIVOS")
+    print(f"🚀 Workers em Paralelo: {max_workers}")
     print(f"{'='*60}\n")
     
     inicio_total = time.time()
@@ -87,8 +89,9 @@ def processar_lote_paralelo(tickers=TICKERS_PADRAO, max_workers=4):
     sucessos = 0
     erros = 0
     
+    func = partial(processar_ticker, start_date=start_date, end_date=end_date)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        resultados = list(executor.map(processar_ticker, tickers))
+        resultados = list(executor.map(func, tickers))
         
     for res in resultados:
         if res:
@@ -103,6 +106,9 @@ def processar_lote_paralelo(tickers=TICKERS_PADRAO, max_workers=4):
     print(f"✅ Sucesso: {sucessos} | ❌ Erros: {erros}")
     print(f"⏱️ Tempo Total: {tempo_total:.1f}s")
     print(f"{'='*60}\n")
+    
+    # Gera relatórios finais (Boletim)
+    gerar_relatorios_finais(tickers)
 
 if __name__ == "__main__":
     processar_lote_paralelo()

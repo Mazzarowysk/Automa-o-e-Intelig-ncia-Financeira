@@ -33,6 +33,15 @@ last_ping_time = time.time() + 15  # 15s de carência inicial para carregar a p�
 
 SHUTDOWN_FLAG = threading.Event()
 
+# Estado global do treinamento
+training_state = {
+    "running": False,
+    "ticker": None,
+    "start_date": None,
+    "end_date": None,
+    "error": None
+}
+
 def heartbeat_monitor():
     """Monitora o ping do navegador. Se parar, encerra o servidor e sai completamente."""
     global last_ping_time
@@ -402,6 +411,17 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
 
+        # ===== /api/training_status =====
+        if self.path == '/api/training_status':
+            body = json.dumps(training_state).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         # ===== /api/sentiment =====
         if self.path.startswith('/api/sentiment'):
             from urllib.parse import urlparse, parse_qs
@@ -411,6 +431,30 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             data = bd.carregar_sentimento_json(ticker)
             if data is None: data = {}
             body = json.dumps(data).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_cors_headers()
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # ===== /api/list_reports =====
+        if self.path == '/api/list_reports':
+            relatorios_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'relatorios')
+            files = []
+            if os.path.exists(relatorios_dir):
+                for f in os.listdir(relatorios_dir):
+                    if f.endswith('.pdf') or f.endswith('.csv'):
+                        files.append({
+                            "name": f,
+                            "url": f"/relatorios/{f}",
+                            "type": "Boletim" if "Boletim" in f else "Dossie",
+                            "time": os.path.getmtime(os.path.join(relatorios_dir, f))
+                        })
+            # Ordenar por mais recente primeiro
+            files.sort(key=lambda x: x['time'], reverse=True)
+            body = json.dumps(files).encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_cors_headers()
@@ -447,25 +491,77 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 end_date = data.get('end', calcular_data_fim_padrao())
                 ticker = data.get('ticker', 'ITUB4')
 
-                print(f"\n[INFO] Retreinamento: {ticker} | {start_date} -> {end_date}")
+                print(f"\n[INFO] Retreinamento: {ticker}")
 
-                env = os.environ.copy()
-                env['PYTHONIOENCODING'] = 'utf-8'
-                cmd = f'python -c "from orquestrador import processar_ticker; processar_ticker(\'{ticker}\', start_date=\'{start_date}\', end_date=\'{end_date}\')"'
-                process = subprocess.run(cmd, shell=True, env=env)
+                # Marcar como rodando ANTES de iniciar a thread — evita race condition no polling
+                training_state['running'] = True
+                training_state['ticker'] = ticker
+                training_state['start_date'] = start_date
+                training_state['end_date'] = end_date
+                training_state['error'] = None
 
-                if process.returncode == 0:
-                    body = b'{"status":"success"}'
-                else:
-                    raise Exception("Erro na execucao do script.")
+                def run_training():
+                    global training_state
+                    try:
+                        import sys
+                        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+                        import orquestrador
+                        orquestrador.processar_lote_paralelo(
+                            tickers=[ticker],
+                            start_date=start_date,
+                            end_date=end_date
+                        )
+                    except Exception as ex:
+                        training_state['error'] = str(ex)
+                        print(f"[ERRO] Falha no retreinamento: {ex}")
+                    finally:
+                        training_state['running'] = False
 
+                t = threading.Thread(target=run_training, daemon=True)
+                t.start()
+
+                body = b'{"status":"started"}'
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_cors_headers()
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
-
+            except Exception as e:
+                self.send_response(500)
+                self.send_cors_headers()
+                self.end_headers()
+                print(f"[ERRO] Falha ao iniciar retreinamento: {e}")
+            return
+            
+        # ===== /api/generate_dossier =====
+        if self.path == '/api/generate_dossier':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data)
+                ticker = data.get('ticker', 'ITUB4')
+                formato = data.get('format', 'pdf')
+                import core.relatorios as rel
+                
+                if formato == 'csv':
+                    file_path = rel.gerar_dossie_individual_csv(ticker)
+                else:
+                    file_path = rel.gerar_dossie_individual_pdf(ticker)
+                
+                if file_path:
+                    filename = os.path.basename(file_path)
+                    body = json.dumps({"status": "ok", "url": f"/relatorios/{filename}"}).encode('utf-8')
+                    self.send_response(200)
+                else:
+                    body = json.dumps({"status": "error", "message": "Falha ao gerar dossie."}).encode('utf-8')
+                    self.send_response(500)
+                    
+                self.send_header('Content-Type', 'application/json')
+                self.send_cors_headers()
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             except Exception as e:
                 error_msg = json.dumps({"status": "error", "message": str(e)}).encode('utf-8')
                 self.send_response(500)
